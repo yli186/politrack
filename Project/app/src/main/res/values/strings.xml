@@ -2,4 +2,5 @@
     <string name="app_name">Politrack</string>
     <string name="google_maps_API_key">AIzaSyAC_Q7whif2rMkKrvUPZgUdCrUfqRgJR7I</string>
     <string name="newusr">New User? Create Account Here:</string>
+    <string name="report">Report</string>
 </resources>
