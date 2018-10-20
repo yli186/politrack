@@ -22,6 +22,8 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleMap.OnMyLocationButtonClickListener,
@@ -36,6 +38,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     //current location
     LocationManager locationManager;
     static final int REQUEST_LOCATION = 1;
+    //save current user mail as id.
+    private String currUserMail;
+    //firebase
+    DatabaseReference database;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,6 +51,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        //get curr user mail.
+        currUserMail  = (getIntent().getStringExtra("UserEmail"));
+        //firebase
+        database = FirebaseDatabase.getInstance().getReference();
     }
 
     /**
@@ -108,6 +119,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         GoogleMap map = mMap;
         map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Police: Last Reported " + Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_toilet_scaled)));
         Toast.makeText(this, "Current location reported.", Toast.LENGTH_LONG).show();
+
+        //kevin's edit
+        // Justin, fill all those with actual value calls from google map API.
+        UploadReport(String type, String time, String longit, String latit, currUserMail, int count);
+
+    }
+    public void UploadReport(String typ, String t, String lng, String lat, String rpU, int c){
+        cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lng,lat,rpU,c);
+        int index = rpU.indexOf('@');
+        String choppedrpU = rpU.substring(0,index);
+        database.child("ReportData").child(choppedrpU).setValue(report);
+
     }
 
     @Override
