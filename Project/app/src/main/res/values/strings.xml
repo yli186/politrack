@@ -3,4 +3,12 @@
     <string name="google_maps_API_key">AIzaSyAC_Q7whif2rMkKrvUPZgUdCrUfqRgJR7I</string>
     <string name="newusr">New User? Create Account Here:</string>
     <string name="report">Report</string>
+
+    <string-array name="names">
+        <item>Home</item>
+        <item>Work</item>
+        <item>Other</item>
+        <item>Custom</item>
+    </string-array>
+
 </resources>
