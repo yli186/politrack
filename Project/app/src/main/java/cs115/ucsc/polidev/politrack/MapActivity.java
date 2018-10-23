@@ -144,7 +144,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         //kevin's edit
         // Justin, fill all those with actual value calls from google map API.
-        //UploadReport("Bathroom", "Now", "0", "0", "jseo11@ucsc.edu", 1);
+        UploadReport("Bathroom", "Now", "0", "0", "jseo11@ucsc.edu", 1);
         //UploadReport(String type, String time, String longit, String latit, currUserMail, int count);
     }
 
@@ -152,7 +152,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lng,lat,rpU,c);
         int index = rpU.indexOf('@');
         String choppedrpU = rpU.substring(0,index);
-        database.child("ReportData").child(choppedrpU).setValue(report);
+        database.child("ReportData").setValue(report);
 
     }
 
