@@ -12,6 +12,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Hashtable;
 
@@ -23,8 +25,11 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleMap.OnMyLocationButtonClickListener,
@@ -43,6 +48,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private String currUserMail;
     //firebase
     DatabaseReference database;
+    //fetch all report from db
+    ArrayList<Report> rpt;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,8 +64,32 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         currUserMail  = (getIntent().getStringExtra("UserEmail"));
         //firebase
         database = FirebaseDatabase.getInstance().getReference();
+        //fetch report arraylist
+        rpt = fetchrpt();
     }
+    public ArrayList<Report> fetchrpt(){
+        final ArrayList<Report> list = new ArrayList();
+        DatabaseReference dr = FirebaseDatabase.getInstance().getReference().child("ReportData");
+        dr.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                try{
+                    for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
+                        Report tdm = postSnapshot.getValue(Report.class);
+                        list.add(tdm);
+                    }
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        return list;
+    }
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case,
      * we
@@ -148,11 +179,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         //UploadReport(String type, String time, String longit, String latit, currUserMail, int count);
     }
 
-    public void UploadReport(String typ, String t, String lng, String lat, String rpU, int c){
+    private void UploadReport(String typ, String t, String lng, String lat, String rpU, int c){
         cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lng,lat,rpU,c);
-        int index = rpU.indexOf('@');
-        String choppedrpU = rpU.substring(0,index);
-        database.child("ReportData").setValue(report);
+        rpt.add(report);
+        database.child("ReportData").setValue(rpt);
 
     }
 
