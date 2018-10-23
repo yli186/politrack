@@ -16,8 +16,8 @@ import com.google.android.gms.common.GoogleApiAvailability;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-
-    private  static final int ERROR_DIALOG_REQUEST = 9001;
+    static String category = "default";
+    private static final int ERROR_DIALOG_REQUEST = 9001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,17 +30,19 @@ public class MainActivity extends AppCompatActivity {
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.names));
         myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mySpinner.setAdapter(myAdapter);
-
         if(isServicesOK()){
             init();
         }
     }
 
     private void init(){
+        final Spinner spinner_category = findViewById(R.id.spinner1);
         Button btnMap = findViewById(cs115.ucsc.polidev.politrack.R.id.btnMap);
         btnMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                category = spinner_category.getSelectedItem().toString();
+                System.out.println(category);
                 startActivity(new Intent(MainActivity.this, MapActivity.class));
             }
         });

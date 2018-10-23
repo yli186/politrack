@@ -5,10 +5,11 @@
     <string name="report">Report</string>
 
     <string-array name="names">
-        <item>Home</item>
-        <item>Work</item>
-        <item>Other</item>
-        <item>Custom</item>
+        <item>Police</item>
+        <item>Protest/Strikes</item>
+        <item>Bench</item>
+        <item>Public Bathroom</item>
+        <item>Water Fountains</item>
     </string-array>
 
 </resources>

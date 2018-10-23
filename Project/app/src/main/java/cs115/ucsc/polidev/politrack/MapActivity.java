@@ -13,6 +13,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 import java.util.Calendar;
+import java.util.Hashtable;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -117,14 +118,34 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     public void onMyLocationClick(@NonNull Location location) {
         GoogleMap map = mMap;
-        map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Police: Last Reported " + Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_toilet_scaled)));
+        String category_name = MainActivity.category;
+        if(category_name.equals("Police")){
+            map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),
+                    location.getLongitude())).title(category_name + " " +
+                    Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_police)));
+        }else if(category_name.equals("Protest/Strikes")){
+            map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),
+                    location.getLongitude())).title(category_name + " " +
+                    Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_protest)));
+        }else if(category_name.equals("Bench")){
+            map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),
+                    location.getLongitude())).title(category_name + " " +
+                    Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_bench)));
+        }else if(category_name.equals("Public Bathroom")){
+            map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),
+                    location.getLongitude())).title(category_name + " " +
+                    Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_toilet)));
+        }else if(category_name.equals("Water Fountains")){
+            map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),
+                    location.getLongitude())).title(category_name + " " +
+                    Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_fountain)));
+        }
         Toast.makeText(this, "Current location reported.", Toast.LENGTH_LONG).show();
 
         //kevin's edit
         // Justin, fill all those with actual value calls from google map API.
-        UploadReport("Bathroom", "Now", "0", "0", "jseo11@ucsc.edu", 1);
+        //UploadReport("Bathroom", "Now", "0", "0", "jseo11@ucsc.edu", 1);
         //UploadReport(String type, String time, String longit, String latit, currUserMail, int count);
-
     }
 
     public void UploadReport(String typ, String t, String lng, String lat, String rpU, int c){
