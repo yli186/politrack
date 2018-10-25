@@ -69,6 +69,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         rpt = fetchrpt();
         // load up all the relevant markers in onCreate
     }
+    @Override
+    public void onResume(){
+        super.onResume();
+        rpt = fetchrpt();
+    }
     public ArrayList<Report> fetchrpt(){
         final ArrayList<Report> list = new ArrayList();
         DatabaseReference dr = FirebaseDatabase.getInstance().getReference().child("ReportData");
