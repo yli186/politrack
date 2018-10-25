@@ -16,6 +16,29 @@ public class Report {
         this.reportedUser = reportedUser;
         this.count = count;
     }
+    public Report(){
 
+    }
 
+    public String getType() {
+        return type;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public double getLongit() {
+        return longit;
+    }
+
+    public double getLatit(){
+        return latit;
+    }
+    public String getReportedUser(){
+        return reportedUser;
+    }
+    public int getCount(){
+        return count;
+    }
 }

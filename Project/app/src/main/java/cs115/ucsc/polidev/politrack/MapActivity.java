@@ -67,6 +67,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         database = FirebaseDatabase.getInstance().getReference();
         //fetch report arraylist
         rpt = fetchrpt();
+        System.out.println(rpt.size());
         // load up all the relevant markers in onCreate
     }
     @Override
@@ -75,19 +76,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         rpt = fetchrpt();
     }
     public ArrayList<Report> fetchrpt(){
-        final ArrayList<Report> list = new ArrayList();
+        final ArrayList<Report> list = new ArrayList<>();
         DatabaseReference dr = FirebaseDatabase.getInstance().getReference().child("ReportData");
         dr.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                try{
-                    for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
-                        Report tdm = postSnapshot.getValue(Report.class);
-                        list.add(tdm);
-                    }
-                }catch(Exception e){
-                    e.printStackTrace();
+                list.clear();
+                for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
+                    Report tdm = postSnapshot.getValue(Report.class);
+                    System.out.println(tdm.type);
+                    list.add(tdm);
                 }
+
             }
 
             @Override
@@ -111,7 +111,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         //When map loads, it will go to the specified coordinates.
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         Location location = getLocation();
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20));
     }
 
     //getLocation function
