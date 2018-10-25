@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -66,6 +67,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         database = FirebaseDatabase.getInstance().getReference();
         //fetch report arraylist
         rpt = fetchrpt();
+        // load up all the relevant markers in onCreate
     }
     public ArrayList<Report> fetchrpt(){
         final ArrayList<Report> list = new ArrayList();
@@ -88,6 +90,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
             }
         });
+        System.out.println("HELLO" + list);
         return list;
     }
     /**
@@ -175,11 +178,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         //kevin's edit
         // Justin, fill all those with actual value calls from google map API.
-        UploadReport("Bathroom", "Now", "0", "0", "jseo11@ucsc.edu", 1);
-        //UploadReport(String type, String time, String longit, String latit, currUserMail, int count);
+        UploadReport(category_name, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
     }
 
-    private void UploadReport(String typ, String t, String lng, String lat, String rpU, int c){
+    private void UploadReport(String typ, String t, double lng, double lat, String rpU, int c){
         cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lng,lat,rpU,c);
         rpt.add(report);
         database.child("ReportData").setValue(rpt);

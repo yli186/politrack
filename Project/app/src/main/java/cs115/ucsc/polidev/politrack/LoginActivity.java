@@ -21,7 +21,7 @@ public class LoginActivity extends Activity {
     private EditText account;
     private EditText password;
 
-    private String nAcc;
+    static String nAcc;
     private String nPass;
 
 
