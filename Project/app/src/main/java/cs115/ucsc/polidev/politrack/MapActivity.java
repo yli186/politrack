@@ -90,7 +90,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
             }
         });
-        System.out.println("HELLO" + list);
         return list;
     }
     /**
