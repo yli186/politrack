@@ -33,9 +33,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="verify"></activity>
         <activity android:name=".MapActivity" />
         <activity android:name=".MainActivity" />
         <activity android:name=".NewUserActivity"></activity>
+
     </application>
 
 </manifest>

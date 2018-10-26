@@ -1,7 +1,11 @@
 package cs115.ucsc.polidev.politrack;
 
 import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -67,4 +71,38 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
+
+    public void pressed(View view) {
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+
+        Intent i = new Intent(this, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent intent = PendingIntent.getActivity(this, 0, i,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(intent);
+
+
+        Intent verify = new Intent(this, verify.class);
+        verify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent VerifyPendingIntent = PendingIntent.getActivity(this, 0, verify, PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+        builder.setContentTitle("Police sighting!");
+        builder.setContentText("Someone reported a police sighting in your area");
+
+        builder.setSmallIcon(R.mipmap.ic_launcher);
+
+        builder.addAction(R.mipmap.ic_launcher,"verify",VerifyPendingIntent);
+
+        builder.setAutoCancel(true);
+
+        Notification notification = builder.build();
+
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        nm.notify(0, notification);
+        
+    }
+
+
 }
