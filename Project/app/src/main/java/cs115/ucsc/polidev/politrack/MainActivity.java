@@ -16,6 +16,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import android.app.NotificationChannel;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -73,8 +74,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void pressed(View view) {
+        int NOTIFICATION_ID = 123;
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        String channel_id = "channel_1";
+        CharSequence name = "channel";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+
+            NotificationChannel mChannel = new NotificationChannel(channel_id, name, importance);
+            mChannel.enableLights(true);
+            mChannel.enableVibration(true);
+            mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            mChannel.setShowBadge(false);
+            notificationManager.createNotificationChannel(mChannel);
+        }
+
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,channel_id);
 
         Intent i = new Intent(this, MainActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -99,8 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
         Notification notification = builder.build();
 
-        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        nm.notify(0, notification);
+        notificationManager.notify(NOTIFICATION_ID, notification);
 
     }
 
