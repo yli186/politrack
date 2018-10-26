@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         nm.notify(0, notification);
-        
+
     }
 
 
