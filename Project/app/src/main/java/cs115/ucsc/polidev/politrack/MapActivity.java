@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -18,24 +19,33 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Hashtable;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
-        GoogleMap.OnMyLocationButtonClickListener,
-        GoogleMap.OnMyLocationClickListener,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+public class MapActivity extends AppCompatActivity
+            implements
+            OnMapReadyCallback,
+            OnMyLocationClickListener,
+            OnMyLocationButtonClickListener,
+            ActivityCompat.OnRequestPermissionsResultCallback {
 
     //Request code for location permission request
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -44,6 +54,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     //current location
     LocationManager locationManager;
+    private FusedLocationProviderClient mFusedLocationClient;
     static final int REQUEST_LOCATION = 1;
     //save current user mail as id.
     private String currUserMail;
@@ -61,20 +72,39 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            // Logic to handle location object
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20));
+                        }
+                    }
+                });
+
+
         //get curr user mail.
         currUserMail  = (getIntent().getStringExtra("UserEmail"));
         //firebase
         database = FirebaseDatabase.getInstance().getReference();
         //fetch report arraylist
         rpt = fetchrpt();
-        System.out.println(rpt.size());
+        System.out.println("HELLO " + rpt.size());
         // load up all the relevant markers in onCreate
     }
+
     @Override
     public void onResume(){
         super.onResume();
         rpt = fetchrpt();
     }
+
     public ArrayList<Report> fetchrpt(){
         final ArrayList<Report> list = new ArrayList<>();
         DatabaseReference dr = FirebaseDatabase.getInstance().getReference().child("ReportData");
@@ -109,26 +139,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mMap.setOnMyLocationClickListener(this);
         enableMyLocation();
         //When map loads, it will go to the specified coordinates.
-        locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        Location location = getLocation();
+        //locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        //Location location = getLocation();
+        //onLocationChanged(location);
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20));
-    }
-
-    //getLocation function
-    Location getLocation(){
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
-                    PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_LOCATION);
-        }else{
-            Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            if(location != null){
-                return location;
-            }else{
-                return location;
-            }
-        }
-        return null;
     }
 
      //Enables the My Location layer if the fine location permission has been granted.
@@ -198,7 +212,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
             return;
         }
-
         if (PermissionUtils.isPermissionGranted(permissions, grantResults,
                 Manifest.permission.ACCESS_FINE_LOCATION)) {
             // Enable the my location layer if the permission has been granted.
