@@ -124,7 +124,6 @@ public class MapActivity extends AppCompatActivity
             }
 
         });
-        System.out.println("HELLO " + list.size());
         return list;
 
     }
@@ -204,6 +203,7 @@ public class MapActivity extends AppCompatActivity
         cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lng,lat,rpU,c);
         rpt.add(report);
         database.child("ReportData").setValue(rpt);
+        System.out.println("HELLO " + rpt.size());
 
     }
 
