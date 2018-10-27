@@ -3,16 +3,16 @@ package cs115.ucsc.polidev.politrack;
 public class Report {
     public String type;
     public String time;
-    public double longit;
     public double latit;
+    public double longit;
     public String reportedUser;
     public int count;
 
-    public Report(String type, String time, double longit, double latit, String reportedUser, int count){
+    public Report(String type, String time, double latit, double longit, String reportedUser, int count){
         this.type = type;
         this.time = time;
-        this.longit = longit;
         this.latit = latit;
+        this.longit = longit;
         this.reportedUser = reportedUser;
         this.count = count;
     }

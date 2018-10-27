@@ -138,11 +138,6 @@ public class MapActivity extends AppCompatActivity
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
         enableMyLocation();
-        //When map loads, it will go to the specified coordinates.
-        //locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        //Location location = getLocation();
-        //onLocationChanged(location);
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20));
     }
 
      //Enables the My Location layer if the fine location permission has been granted.
@@ -168,43 +163,57 @@ public class MapActivity extends AppCompatActivity
 
     // Will use this to report current location
     @Override
-    public void onMyLocationClick(@NonNull Location location) {
+    public void onMyLocationClick(@NonNull Location location){
+        addIndicator(location.getLatitude(), location.getLongitude());
+        //kevin's edit
+        // Justin, fill all those with actual value calls from google map API.
+        UploadReport(MainActivity.category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
+        // temporarily make the map refresh when a new report is made. Can relocate this ones we figure out how to pull data anytime.
+        checkPreferences(rpt);
+        // --------------------------------------------------------
+    }
+
+    public void addIndicator(double latitude, double longitude){
         GoogleMap map = mMap;
         String category_name = MainActivity.category;
         if(category_name.equals("Police")){
-            map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),
-                    location.getLongitude())).title(category_name + " " +
+            map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                    longitude)).title(category_name + " " +
                     Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_police)));
         }else if(category_name.equals("Protest/Strikes")){
-            map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),
-                    location.getLongitude())).title(category_name + " " +
+            map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                    longitude)).title(category_name + " " +
                     Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_protest)));
         }else if(category_name.equals("Bench")){
-            map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),
-                    location.getLongitude())).title(category_name + " " +
+            map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                    longitude)).title(category_name + " " +
                     Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_bench)));
         }else if(category_name.equals("Public Bathroom")){
-            map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),
-                    location.getLongitude())).title(category_name + " " +
+            map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                    longitude)).title(category_name + " " +
                     Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_toilet)));
         }else if(category_name.equals("Water Fountains")){
-            map.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(),
-                    location.getLongitude())).title(category_name + " " +
+            map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                    longitude)).title(category_name + " " +
                     Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_fountain)));
         }
         Toast.makeText(this, "Current location reported.", Toast.LENGTH_LONG).show();
-
-        //kevin's edit
-        // Justin, fill all those with actual value calls from google map API.
-        UploadReport(category_name, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
     }
 
-    private void UploadReport(String typ, String t, double lng, double lat, String rpU, int c){
-        cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lng,lat,rpU,c);
+    private void UploadReport(String typ, String t, double lat, double lng, String rpU, int c){
+        cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,rpU,c);
         rpt.add(report);
         database.child("ReportData").setValue(rpt);
-        System.out.println("HELLO " + rpt.size());
+    }
 
+    public void checkPreferences(ArrayList<Report> rpt){
+        String category_name = MainActivity.category;
+        for(int i=0; i<rpt.size(); i++){
+            if(category_name.equals(rpt.get(i).type)){
+                System.out.println("JOSHH "+i+" "+rpt.get(i).type);
+                addIndicator(rpt.get(i).latit, rpt.get(i).longit);
+            }
+        }
     }
 
     @Override
