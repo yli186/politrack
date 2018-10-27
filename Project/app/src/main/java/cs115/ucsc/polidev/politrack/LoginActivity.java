@@ -79,4 +79,9 @@ public class LoginActivity extends Activity {
         intent.putExtra("UserPass", x);
         startActivity(intent);
     }
+
+    public void bypass(View v){
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
 }

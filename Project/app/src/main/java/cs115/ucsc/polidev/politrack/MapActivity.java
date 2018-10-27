@@ -94,8 +94,8 @@ public class MapActivity extends AppCompatActivity
         //firebase
         database = FirebaseDatabase.getInstance().getReference();
         //fetch report arraylist
+        rpt = new ArrayList<Report>();
         rpt = fetchrpt();
-        System.out.println("HELLO " + rpt.size());
         // load up all the relevant markers in onCreate
     }
 
@@ -111,21 +111,22 @@ public class MapActivity extends AppCompatActivity
         dr.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                list.clear();
                 for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
                     Report tdm = postSnapshot.getValue(Report.class);
                     System.out.println(tdm.type);
                     list.add(tdm);
                 }
-
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
             }
+
         });
+        System.out.println("HELLO " + list.size());
         return list;
+
     }
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case,
