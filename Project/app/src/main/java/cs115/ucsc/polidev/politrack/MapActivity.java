@@ -116,6 +116,8 @@ public class MapActivity extends AppCompatActivity
                     System.out.println(tdm.type);
                     list.add(tdm);
                 }
+                //testing
+                checkPreferences(list);
             }
 
             @Override
