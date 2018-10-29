@@ -1,7 +1,12 @@
 package cs115.ucsc.polidev.politrack;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -11,8 +16,10 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -93,10 +100,6 @@ public class MapActivity extends AppCompatActivity
         currUserMail  = (getIntent().getStringExtra("UserEmail"));
         //firebase
         database = FirebaseDatabase.getInstance().getReference();
-        //fetch report arraylist
-        rpt = new ArrayList<Report>();
-        rpt = fetchrpt();
-        // load up all the relevant markers in onCreate
     }
 
     @Override
@@ -118,6 +121,8 @@ public class MapActivity extends AppCompatActivity
                 }
                 //testing
                 checkPreferences(list);
+                //startActivity(new Intent(MapActivity.this, MapActivity.class));
+                //notifySighting();
             }
 
             @Override
@@ -250,5 +255,52 @@ public class MapActivity extends AppCompatActivity
     private void showMissingPermissionError() {
         PermissionUtils.PermissionDeniedDialog
                 .newInstance(true).show(getSupportFragmentManager(), "dialog");
+    }
+
+    public void notifySighting() {
+        int NOTIFICATION_ID = 123;
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        String channel_id = "channel_1";
+        CharSequence name = "channel";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+
+            NotificationChannel mChannel = new NotificationChannel(channel_id, name, importance);
+            mChannel.enableLights(true);
+            mChannel.enableVibration(true);
+            mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            mChannel.setShowBadge(false);
+            notificationManager.createNotificationChannel(mChannel);
+        }
+
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,channel_id);
+
+        Intent i = new Intent(this, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent intent = PendingIntent.getActivity(this, 0, i,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(intent);
+
+
+        Intent verify = new Intent(this, verify.class);
+        verify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent VerifyPendingIntent = PendingIntent.getActivity(this, 0, verify, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        String category_name = MainActivity.category;
+        builder.setContentTitle(category_name + " sighted!");
+        builder.setContentText("Someone reported a " + category_name + "sighting in your area.");
+
+        builder.setSmallIcon(R.mipmap.ic_launcher);
+
+        builder.addAction(R.mipmap.ic_launcher,"verify",VerifyPendingIntent);
+
+        builder.setAutoCancel(true);
+
+        Notification notification = builder.build();
+
+        notificationManager.notify(NOTIFICATION_ID, notification);
+
     }
 }
