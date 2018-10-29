@@ -16,7 +16,11 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.maps.model.Circle;
+
 import android.app.NotificationChannel;
+
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.names));
         myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mySpinner.setAdapter(myAdapter);
+
+
+
         if(isServicesOK()){
             init();
         }
@@ -43,14 +50,24 @@ public class MainActivity extends AppCompatActivity {
     private void init(){
         final Spinner spinner_category = findViewById(R.id.spinner1);
         Button btnMap = findViewById(cs115.ucsc.polidev.politrack.R.id.btnMap);
+
+
         btnMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 category = spinner_category.getSelectedItem().toString();
                 System.out.println(category);
                 startActivity(new Intent(MainActivity.this, MapActivity.class));
+
+
             }
+
         });
+
+
+
+
+
     }
 
     public boolean isServicesOK(){
