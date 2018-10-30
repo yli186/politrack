@@ -18,8 +18,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import android.app.NotificationChannel;
 
@@ -30,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     static int radius = 0;
     private static final int ERROR_DIALOG_REQUEST = 9001;
 
-    private String userEmail = (getIntent().getStringExtra("UserEmail"));
+    private String userEmail;
     DatabaseReference database;
 
     //this is the radius variables
@@ -41,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(cs115.ucsc.polidev.politrack.R.layout.activity_main);
-
+        userEmail = (getIntent().getStringExtra("UserEmail"));
         Spinner mySpinner = findViewById(R.id.spinner1);
         //firebase
         database = FirebaseDatabase.getInstance().getReference();
@@ -99,6 +102,27 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, MapActivity.class));
             }
         });
+        database.child("UserData").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
+                    User tdm = postSnapshot.getValue(User.class);
+                    if(tdm.userEmail.equals(userEmail)){
+                        radius = tdm.prefRadius;
+                        System.out.println("saved radius" +radius);
+                    }
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+
+        });
+
+
     }
 
     public boolean isServicesOK(){
