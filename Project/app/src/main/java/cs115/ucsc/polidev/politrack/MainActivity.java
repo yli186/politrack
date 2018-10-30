@@ -18,6 +18,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import android.app.NotificationChannel;
 
 public class MainActivity extends AppCompatActivity {
@@ -26,6 +29,10 @@ public class MainActivity extends AppCompatActivity {
     static String category = "default";
     static int radius = 0;
     private static final int ERROR_DIALOG_REQUEST = 9001;
+
+    private String userEmail = (getIntent().getStringExtra("UserEmail"));
+    DatabaseReference database;
+
     //this is the radius variables
     private TextView radiusView;
     private SeekBar radiusBar;
@@ -36,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(cs115.ucsc.polidev.politrack.R.layout.activity_main);
 
         Spinner mySpinner = findViewById(R.id.spinner1);
+        //firebase
+        database = FirebaseDatabase.getInstance().getReference();
 
         ArrayAdapter<String> myAdapter = new ArrayAdapter<>(MainActivity.this,
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.names));
@@ -58,6 +67,11 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     radiusView.setText("Radius = " + progress + " miles");
                 }
+                int index = userEmail.indexOf('@');
+                String cu = userEmail.substring(0,index);
+
+
+                database.child("UserData").child(cu).child("prefRadius").setValue(radius);
                 radius = progress;
             }
 
