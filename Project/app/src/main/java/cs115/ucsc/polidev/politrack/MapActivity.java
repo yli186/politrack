@@ -8,7 +8,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -20,10 +19,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -42,8 +38,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -75,20 +69,11 @@ public class MapActivity extends AppCompatActivity
     DatabaseReference database;
     //fetch all report from db
     ArrayList<Report> rpt;
-    MarkerOptions marker;
-
-    Circle circle;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
-
-        Button Last_location_button = (Button) findViewById(cs115.ucsc.polidev.politrack.R.id.LastLocationButton);
-        Button Set = (Button) findViewById(R.id.set);
-
-
-
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -106,9 +91,6 @@ public class MapActivity extends AppCompatActivity
                         if (location != null) {
                             // Logic to handle location object
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20));
-                            addMarkers(location.getLatitude(),location.getLongitude());
-                            circle = drawCircle(new LatLng(location.getLatitude(), location.getLongitude()));
-
                         }
                     }
                 });
@@ -118,22 +100,6 @@ public class MapActivity extends AppCompatActivity
         currUserMail  = (getIntent().getStringExtra("UserEmail"));
         //firebase
         database = FirebaseDatabase.getInstance().getReference();
-
-        Last_location_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-
-            public void onClick(View v) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 20));
-            }
-        });
-
-        Set.setOnClickListener(new View.OnClickListener() {
-            @Override
-
-            public void onClick(View v) {
-              setCricle(circle);
-            }
-        });
     }
 
     @Override
@@ -141,8 +107,6 @@ public class MapActivity extends AppCompatActivity
         super.onResume();
         rpt = fetchrpt();
     }
-
-
 
     public ArrayList<Report> fetchrpt(){
         final ArrayList<Report> list = new ArrayList<>();
@@ -183,35 +147,6 @@ public class MapActivity extends AppCompatActivity
         enableMyLocation();
     }
 
-
-
-    private void addMarkers(double lat, double lng){
-        marker = new MarkerOptions()
-                .position(new LatLng(lat,lng));
-        mMap.addMarker(marker);
-    }
-
-    private Circle drawCircle(LatLng latLng){
-        CircleOptions options = new CircleOptions()
-                .center(latLng)
-                .radius(1000)
-                .fillColor(0x33FF0000)
-                .strokeColor(Color.BLUE)
-                .strokeWidth(3);
-
-        return mMap.addCircle(options);
-    }
-
-    private Circle setCricle(Circle circle){
-        EditText radiusText = (EditText) findViewById(R.id.radius);
-        if(radiusText.getText().toString().trim().length() != 0){
-            double radius = Double.parseDouble(radiusText.getText().toString());
-            circle.setRadius(radius);
-        }
-        return null;
-    }
-
-
      //Enables the My Location layer if the fine location permission has been granted.
     private void enableMyLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -221,8 +156,7 @@ public class MapActivity extends AppCompatActivity
                     Manifest.permission.ACCESS_FINE_LOCATION, true);
         } else if (mMap != null) {
             // Access to the location has been granted to the app.
-            mMap.setMyLocationEnabled(false);
-
+            mMap.setMyLocationEnabled(true);
         }
     }
 
@@ -281,6 +215,7 @@ public class MapActivity extends AppCompatActivity
 
     public void checkPreferences(ArrayList<Report> rpt){
         String category_name = MainActivity.category;
+        //loop to see if requirements are met.
         for(int i=0; i<rpt.size(); i++){
             if(category_name.equals(rpt.get(i).type)){
                 System.out.println("JOSHH "+i+" "+rpt.get(i).type);
@@ -369,6 +304,4 @@ public class MapActivity extends AppCompatActivity
         notificationManager.notify(NOTIFICATION_ID, notification);
 
     }
-
-
 }
