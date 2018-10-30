@@ -69,6 +69,9 @@ public class MapActivity extends AppCompatActivity
     DatabaseReference database;
     //fetch all report from db
     ArrayList<Report> rpt;
+    //store lat and long of current location
+    static double lat2 = 0.0;
+    static double lon2 = 0.0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -94,7 +97,6 @@ public class MapActivity extends AppCompatActivity
                         }
                     }
                 });
-
 
         //get curr user mail.
         currUserMail  = (getIntent().getStringExtra("UserEmail"));
@@ -213,13 +215,55 @@ public class MapActivity extends AppCompatActivity
         database.child("ReportData").setValue(rpt);
     }
 
+    public boolean checkRadius(final double lat1, final double lon1){
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            // check the two points here.
+                            lat2 = location.getLatitude();
+                            lon2 = location.getLongitude();
+                        }
+                    }
+                });
+        //do the formula to get the distance between two points. Compare the distance to radius.
+        double R = 6371000;
+        double var1 = Math.toRadians(lat1);
+        double var2 = Math.toRadians(lat2);
+        double var3 = Math.toRadians(lat2-lat1);
+        double var4 = Math.toRadians(lon2-lon1);
+
+        double a = Math.sin(var3/2) * Math.sin(var3/2) +
+                Math.cos(var1) * Math.cos(var2) *
+                        Math.sin(var4/2) * Math.sin(var4/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double d = R * c;
+        d = d/1609.344; //convert to miles.
+        double radius = MainActivity.radius;
+        if(radius>=d){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     public void checkPreferences(ArrayList<Report> rpt){
         String category_name = MainActivity.category;
         //loop to see if requirements are met.
         for(int i=0; i<rpt.size(); i++){
-            if(category_name.equals(rpt.get(i).type)){
-                System.out.println("JOSHH "+i+" "+rpt.get(i).type);
-                addIndicator(rpt.get(i).latit, rpt.get(i).longit);
+            //check if category name is correct
+            if(category_name.equals(rpt.get(i).type) ){
+                // check if radius is correct
+                if(checkRadius(rpt.get(i).latit, rpt.get(i).longit)){
+                    System.out.println("JOSHH "+i+" "+rpt.get(i).type);
+                    addIndicator(rpt.get(i).latit, rpt.get(i).longit);
+                }
             }
         }
     }
