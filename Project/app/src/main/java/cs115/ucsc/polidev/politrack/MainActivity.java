@@ -70,10 +70,9 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     radiusView.setText("Radius = " + progress + " miles");
                 }
+                //push radius
                 int index = userEmail.indexOf('@');
                 String cu = userEmail.substring(0,index);
-
-
                 database.child("UserData").child(cu).child("prefRadius").setValue(radius);
                 radius = progress;
             }
@@ -102,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, MapActivity.class));
             }
         });
+        //load radius
         database.child("UserData").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
