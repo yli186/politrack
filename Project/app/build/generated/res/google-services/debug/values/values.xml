@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">287277785909-ol50icrobqlmodoli0j6ck0tf15ghda4.apps.googleusercontent.com</string>
+    <string name="firebase_database_url" translatable="false">https://politrack-8e05b.firebaseio.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">287277785909</string>
+    <string name="google_api_key" translatable="false">AIzaSyB-P1nWmGdTylKQzOnAnPeUs9cmsXh9hsc</string>
+    <string name="google_app_id" translatable="false">1:287277785909:android:03d0de72a3fa88be</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyB-P1nWmGdTylKQzOnAnPeUs9cmsXh9hsc</string>
+    <string name="google_storage_bucket" translatable="false">politrack-8e05b.appspot.com</string>
+    <string name="project_id" translatable="false">politrack-8e05b</string>
+</resources>
