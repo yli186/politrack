@@ -59,6 +59,34 @@ public class MainActivity extends AppCompatActivity {
         //code for radius onCreate
         radiusView = findViewById(R.id.radiusView);
         radiusBar = findViewById(R.id.radiusBar);
+        //load radius
+        database.child("UserData").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
+                    User tdm = postSnapshot.getValue(User.class);
+                    if(tdm.userEmail.equals(userEmail)){
+                        radius = tdm.prefRadius;
+                        System.out.println("saved radius" +radius);
+                        if(radius==100){
+                            radiusView.setText("Radius = " + radius + "+ miles");
+                        }else if(radius==1){
+                            radiusView.setText("Radius = " + radius + " mile");
+                        }else{
+                            radiusView.setText("Radius = " + radius + " miles");
+                        }
+                        radiusBar.setProgress(radius);
+                    }
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+
+        });
 
         radiusBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -101,28 +129,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, MapActivity.class));
             }
         });
-        //load radius
-        database.child("UserData").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
-                    User tdm = postSnapshot.getValue(User.class);
-                    if(tdm.userEmail.equals(userEmail)){
-                        radius = tdm.prefRadius;
-                        System.out.println("saved radius" +radius);
-                    }
-                }
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-
-        });
-
-
     }
 
     public boolean isServicesOK(){
