@@ -21,6 +21,10 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -59,6 +63,7 @@ public class MapActivity extends AppCompatActivity
 
     //Request code for location permission request
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    static String category = "default";
     //Flag indicating whether a requested permission has been denied after returning in
     private boolean mPermissionDenied = false;
     private GoogleMap mMap;
@@ -96,7 +101,7 @@ public class MapActivity extends AppCompatActivity
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             // Logic to handle location object
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 12));
                             drawCircle(new LatLng(location.getLatitude(), location.getLongitude()));
                         }
                     }
@@ -104,8 +109,32 @@ public class MapActivity extends AppCompatActivity
 
         //get curr user mail.
         currUserMail  = (getIntent().getStringExtra("UserEmail"));
+
         //firebase
         database = FirebaseDatabase.getInstance().getReference();
+
+        //array for spinner
+        Spinner mySpinner = findViewById(R.id.spinner1);
+        ArrayAdapter<CharSequence> myAdapter = ArrayAdapter.createFromResource(this,
+                    R.array.names, android.R.layout.simple_spinner_item);
+        myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mySpinner.setAdapter(myAdapter);
+
+        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                System.out.println("HI "+parent.getItemAtPosition(position));
+                category = (String) parent.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //refresh
+        refreshMap();
     }
 
     @Override
@@ -148,7 +177,7 @@ public class MapActivity extends AppCompatActivity
     private Circle drawCircle(LatLng latLng){
         CircleOptions options = new CircleOptions()
                 .center(latLng)
-                .radius(MainActivity.radius)
+                .radius((MainActivity.radius)*1609.34)
                 .fillColor(0x33FF0000)
                 .strokeColor(Color.BLUE)
                 .strokeWidth(3);
@@ -192,7 +221,7 @@ public class MapActivity extends AppCompatActivity
         addIndicator(location.getLatitude(), location.getLongitude());
         //kevin's edit
         // Justin, fill all those with actual value calls from google map API.
-        UploadReport(MainActivity.category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
+        UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
         // temporarily make the map refresh when a new report is made. Can relocate this ones we figure out how to pull data anytime.
         checkPreferences(rpt);
         // --------------------------------------------------------
@@ -200,7 +229,7 @@ public class MapActivity extends AppCompatActivity
 
     public void addIndicator(double latitude, double longitude){
         GoogleMap map = mMap;
-        String category_name = MainActivity.category;
+        String category_name = category;
         if(category_name.equals("Police")){
             map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                     longitude)).title(category_name + " " +
@@ -270,7 +299,7 @@ public class MapActivity extends AppCompatActivity
     }
 
     public void checkPreferences(ArrayList<Report> rpt){
-        String category_name = MainActivity.category;
+        String category_name = category;
         //loop to see if requirements are met.
         for(int i=0; i<rpt.size(); i++){
             //check if category name is correct
@@ -349,7 +378,7 @@ public class MapActivity extends AppCompatActivity
         verify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent VerifyPendingIntent = PendingIntent.getActivity(this, 0, verify, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        String category_name = MainActivity.category;
+        String category_name = category;
         builder.setContentTitle(category_name + " sighted!");
         builder.setContentText("Someone reported a " + category_name + "sighting in your area.");
 
@@ -363,5 +392,16 @@ public class MapActivity extends AppCompatActivity
 
         notificationManager.notify(NOTIFICATION_ID, notification);
 
+    }
+
+    private void refreshMap(){
+        Button btnMap = findViewById(R.id.btnRefresh);
+        btnMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(getIntent());
+            }
+        });
     }
 }

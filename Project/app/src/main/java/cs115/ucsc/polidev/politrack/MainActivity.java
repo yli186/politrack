@@ -29,7 +29,6 @@ import android.app.NotificationChannel;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-    static String category = "default";
     static int radius = 0;
     private static final int ERROR_DIALOG_REQUEST = 9001;
 
@@ -45,14 +44,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(cs115.ucsc.polidev.politrack.R.layout.activity_main);
         userEmail = (getIntent().getStringExtra("UserEmail"));
-        Spinner mySpinner = findViewById(R.id.spinner1);
+
         //firebase
         database = FirebaseDatabase.getInstance().getReference();
 
-        ArrayAdapter<String> myAdapter = new ArrayAdapter<>(MainActivity.this,
-                android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.names));
-        myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mySpinner.setAdapter(myAdapter);
         if(isServicesOK()){
             init();
         }
@@ -119,13 +114,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init(){
-        final Spinner spinner_category = findViewById(R.id.spinner1);
         Button btnMap = findViewById(cs115.ucsc.polidev.politrack.R.id.btnMap);
         btnMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                category = spinner_category.getSelectedItem().toString();
-                System.out.println(category);
                 startActivity(new Intent(MainActivity.this, MapActivity.class));
             }
         });
