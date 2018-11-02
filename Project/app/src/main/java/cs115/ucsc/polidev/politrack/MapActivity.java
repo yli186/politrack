@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -38,6 +39,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -94,6 +97,7 @@ public class MapActivity extends AppCompatActivity
                         if (location != null) {
                             // Logic to handle location object
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20));
+                            drawCircle(new LatLng(location.getLatitude(), location.getLongitude()));
                         }
                     }
                 });
@@ -141,6 +145,18 @@ public class MapActivity extends AppCompatActivity
      * we
      * just add a marker near Africa.
      */
+    private Circle drawCircle(LatLng latLng){
+        CircleOptions options = new CircleOptions()
+                .center(latLng)
+                .radius(MainActivity.radius)
+                .fillColor(0x33FF0000)
+                .strokeColor(Color.BLUE)
+                .strokeWidth(3);
+
+        return mMap.addCircle(options);
+    }
+
+
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
