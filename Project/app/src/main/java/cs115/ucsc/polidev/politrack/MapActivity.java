@@ -64,7 +64,7 @@ public class MapActivity extends AppCompatActivity
             ActivityCompat.OnRequestPermissionsResultCallback {
 
     TextToSpeech toSpeech; //for text to speach notification
-    Button speak_button;
+
     //Request code for location permission request
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     static String category = "default";
