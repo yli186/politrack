@@ -20,7 +20,7 @@ public class verify extends AppCompatActivity {
     }
 
     public void back(View view){
-        Intent i=new Intent(this, MainActivity.class);
+        Intent i=new Intent(this, MapActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(i);
     }
