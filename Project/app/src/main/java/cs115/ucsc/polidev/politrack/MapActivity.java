@@ -26,10 +26,12 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.speech.tts.TextToSpeech;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Hashtable;
+import java.util.Locale;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -61,6 +63,8 @@ public class MapActivity extends AppCompatActivity
             OnMyLocationButtonClickListener,
             ActivityCompat.OnRequestPermissionsResultCallback {
 
+    TextToSpeech toSpeech; //for text to speach notification
+    Button speak_button;
     //Request code for location permission request
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     static String category = "default";
@@ -135,6 +139,21 @@ public class MapActivity extends AppCompatActivity
 
         //refresh
         refreshMap();
+
+        toSpeech=new TextToSpeech(MapActivity.this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status==TextToSpeech.SUCCESS)
+                {
+                    toSpeech.setLanguage(Locale.US);
+                    toSpeech.setPitch(1);
+                    toSpeech.setSpeechRate(1);
+                }
+            }
+        });
+        //toSpeech.speak(text,TextToSpeech.QUEUE_FLUSH,null);
+
+
     }
 
     @Override
@@ -347,7 +366,7 @@ public class MapActivity extends AppCompatActivity
                 .newInstance(true).show(getSupportFragmentManager(), "dialog");
     }
 
-    public void notifySighting() {
+    public void notifySighting(View view) {
         int NOTIFICATION_ID = 123;
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -367,12 +386,11 @@ public class MapActivity extends AppCompatActivity
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this,channel_id);
 
-        Intent i = new Intent(this, MainActivity.class);
+        Intent i = new Intent(this, MapActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent intent = PendingIntent.getActivity(this, 0, i,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(intent);
-
 
         Intent verify = new Intent(this, verify.class);
         verify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -380,7 +398,8 @@ public class MapActivity extends AppCompatActivity
 
         String category_name = category;
         builder.setContentTitle(category_name + " sighted!");
-        builder.setContentText("Someone reported a " + category_name + "sighting in your area.");
+
+        builder.setContentText("Someone reported a " + category_name + " sighting in your area.");
 
         builder.setSmallIcon(R.mipmap.ic_launcher);
 
@@ -391,8 +410,26 @@ public class MapActivity extends AppCompatActivity
         Notification notification = builder.build();
 
         notificationManager.notify(NOTIFICATION_ID, notification);
-
+        speak ("Someone reported a " + category_name + " sighting in your area.");
     }
+
+
+    private void speak(String text){
+        toSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        if (toSpeech != null) {
+            toSpeech.stop();
+            toSpeech.shutdown();
+        }
+
+        super.onDestroy();
+    }
+
+
 
     private void refreshMap(){
         Button btnMap = findViewById(R.id.btnRefresh);
