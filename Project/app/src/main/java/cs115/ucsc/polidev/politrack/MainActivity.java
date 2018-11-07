@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     static int radius = 0;
     private static final int ERROR_DIALOG_REQUEST = 9001;
 
-    private String userEmail;
+    static String userEmail;
     DatabaseReference database;
 
     //this is the radius variables

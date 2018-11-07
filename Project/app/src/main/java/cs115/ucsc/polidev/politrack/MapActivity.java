@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -118,17 +119,46 @@ public class MapActivity extends AppCompatActivity
         database = FirebaseDatabase.getInstance().getReference();
 
         //array for spinner
-        Spinner mySpinner = findViewById(R.id.spinner1);
+        final Spinner mySpinner = findViewById(R.id.spinner1);
         ArrayAdapter<CharSequence> myAdapter = ArrayAdapter.createFromResource(this,
-                    R.array.names, android.R.layout.simple_spinner_item);
+                R.array.names, android.R.layout.simple_spinner_item);
         myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mySpinner.setAdapter(myAdapter);
+        // setting default display
+        database.child("UserData").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
+                    User tdm = postSnapshot.getValue(User.class);
+                    if(tdm.userEmail.equals(MainActivity.userEmail)){
+                        category = tdm.category;
+                        mySpinner.setPrompt(category);
+                    }
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+
+        });
+        // set default spinner text to be saved category preference
+        int spinnerPosition = myAdapter.getPosition(category);
+        mySpinner.setSelection(spinnerPosition);
 
         mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 System.out.println("HI "+parent.getItemAtPosition(position));
                 category = (String) parent.getItemAtPosition(position);
+                int index = MainActivity.userEmail.indexOf('@');
+                String cu = MainActivity.userEmail.substring(0,index);
+                database.child("UserData").child(cu).child("category").setValue(category);
+                // refresh activity
+                mMap.clear();
+                rpt = fetchrpt();
             }
 
             @Override
@@ -138,7 +168,8 @@ public class MapActivity extends AppCompatActivity
         });
 
         //refresh
-        refreshMap();
+        System.out.println("SDDK " +Build.VERSION.RELEASE);
+        //refreshMap();
 
         toSpeech=new TextToSpeech(MapActivity.this, new TextToSpeech.OnInitListener() {
             @Override
@@ -170,23 +201,20 @@ public class MapActivity extends AppCompatActivity
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
                     Report tdm = postSnapshot.getValue(Report.class);
-                    System.out.println(tdm.type);
+                    System.out.println("onDataChange "+tdm.getTime());
                     list.add(tdm);
                 }
-                //testing
+                // testing
                 checkPreferences(list);
-                //startActivity(new Intent(MapActivity.this, MapActivity.class));
-                //notifySighting();
+                notifySighting();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
             }
-
         });
         return list;
-
     }
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case,
@@ -211,6 +239,7 @@ public class MapActivity extends AppCompatActivity
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
         enableMyLocation();
+        refreshMap();
     }
 
      //Enables the My Location layer if the fine location permission has been granted.
@@ -366,7 +395,7 @@ public class MapActivity extends AppCompatActivity
                 .newInstance(true).show(getSupportFragmentManager(), "dialog");
     }
 
-    public void notifySighting(View view) {
+    public void notifySighting() {
         int NOTIFICATION_ID = 123;
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -386,11 +415,12 @@ public class MapActivity extends AppCompatActivity
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this,channel_id);
 
-        Intent i = new Intent(this, MapActivity.class);
+        Intent i = new Intent(this, MainActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent intent = PendingIntent.getActivity(this, 0, i,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(intent);
+
 
         Intent verify = new Intent(this, verify.class);
         verify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -398,8 +428,7 @@ public class MapActivity extends AppCompatActivity
 
         String category_name = category;
         builder.setContentTitle(category_name + " sighted!");
-
-        builder.setContentText("Someone reported a " + category_name + " sighting in your area.");
+        builder.setContentText("Someone reported a " + category_name + "sighting in your area.");
 
         builder.setSmallIcon(R.mipmap.ic_launcher);
 
@@ -410,7 +439,7 @@ public class MapActivity extends AppCompatActivity
         Notification notification = builder.build();
 
         notificationManager.notify(NOTIFICATION_ID, notification);
-        speak ("Someone reported a " + category_name + " sighting in your area.");
+
     }
 
 
@@ -425,7 +454,6 @@ public class MapActivity extends AppCompatActivity
             toSpeech.stop();
             toSpeech.shutdown();
         }
-
         super.onDestroy();
     }
 
