@@ -94,10 +94,10 @@ public class MainActivity extends AppCompatActivity {
                     radiusView.setText("Radius = " + progress + " miles");
                 }
                 //push radius
+                radius = progress;
                 int index = userEmail.indexOf('@');
                 String cu = userEmail.substring(0,index);
                 database.child("UserData").child(cu).child("prefRadius").setValue(radius);
-                radius = progress;
             }
 
             @Override

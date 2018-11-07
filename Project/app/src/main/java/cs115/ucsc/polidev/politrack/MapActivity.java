@@ -76,6 +76,7 @@ public class MapActivity extends AppCompatActivity
     LocationManager locationManager;
     private FusedLocationProviderClient mFusedLocationClient;
     static final int REQUEST_LOCATION = 1;
+    static int spinnerPosition = -1;
     //save current user mail as id.
     private String currUserMail;
     //firebase
@@ -118,12 +119,6 @@ public class MapActivity extends AppCompatActivity
         //firebase
         database = FirebaseDatabase.getInstance().getReference();
 
-        //array for spinner
-        final Spinner mySpinner = findViewById(R.id.spinner1);
-        ArrayAdapter<CharSequence> myAdapter = ArrayAdapter.createFromResource(this,
-                R.array.names, android.R.layout.simple_spinner_item);
-        myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mySpinner.setAdapter(myAdapter);
         // setting default display
         database.child("UserData").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -132,7 +127,36 @@ public class MapActivity extends AppCompatActivity
                     User tdm = postSnapshot.getValue(User.class);
                     if(tdm.userEmail.equals(MainActivity.userEmail)){
                         category = tdm.category;
-                        mySpinner.setPrompt(category);
+                        // change position value based on category (probably better solution but this works for now)
+                        //
+                        final Spinner mySpinner = findViewById(R.id.spinner1);
+                        ArrayAdapter<CharSequence> myAdapter = ArrayAdapter.createFromResource(getApplicationContext(),
+                                R.array.names, android.R.layout.simple_spinner_item);
+                        myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        mySpinner.setAdapter(myAdapter);
+                        // set default spinner text to be saved category preference
+                        int spinnerPosition = myAdapter.getPosition(category);
+                        mySpinner.setSelection(spinnerPosition);
+                        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                category = (String) parent.getItemAtPosition(position);
+                                int index = MainActivity.userEmail.indexOf('@');
+                                String cu = MainActivity.userEmail.substring(0,index);
+                                database.child("UserData").child(cu).child("category").setValue(category);
+                                // refresh activity
+                                mMap.clear();
+                                rpt = fetchrpt();
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                        //
+                        // update report list in onCreate
+                        rpt = fetchrpt();
                     }
                 }
 
@@ -144,32 +168,9 @@ public class MapActivity extends AppCompatActivity
             }
 
         });
-        // set default spinner text to be saved category preference
-        int spinnerPosition = myAdapter.getPosition(category);
-        mySpinner.setSelection(spinnerPosition);
 
-        mySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                System.out.println("HI "+parent.getItemAtPosition(position));
-                category = (String) parent.getItemAtPosition(position);
-                int index = MainActivity.userEmail.indexOf('@');
-                String cu = MainActivity.userEmail.substring(0,index);
-                database.child("UserData").child(cu).child("category").setValue(category);
-                // refresh activity
-                mMap.clear();
-                rpt = fetchrpt();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
-        //refresh
+        //testing API level thing
         System.out.println("SDDK " +Build.VERSION.RELEASE);
-        //refreshMap();
 
         toSpeech=new TextToSpeech(MapActivity.this, new TextToSpeech.OnInitListener() {
             @Override
@@ -201,12 +202,12 @@ public class MapActivity extends AppCompatActivity
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
                     Report tdm = postSnapshot.getValue(Report.class);
-                    System.out.println("onDataChange "+tdm.getTime());
                     list.add(tdm);
                 }
                 // testing
+                refreshMap();
                 checkPreferences(list);
-                notifySighting();
+                //notifySighting();
             }
 
             @Override
@@ -268,7 +269,6 @@ public class MapActivity extends AppCompatActivity
     public void onMyLocationClick(@NonNull Location location){
         addIndicator(location.getLatitude(), location.getLongitude());
         //kevin's edit
-        // Justin, fill all those with actual value calls from google map API.
         UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
         // temporarily make the map refresh when a new report is made. Can relocate this ones we figure out how to pull data anytime.
         checkPreferences(rpt);
@@ -299,7 +299,7 @@ public class MapActivity extends AppCompatActivity
                     longitude)).title(category_name + " " +
                     Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_fountain)));
         }
-        Toast.makeText(this, "Current location reported.", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Refreshed.", Toast.LENGTH_LONG).show();
     }
 
     private void UploadReport(String typ, String t, double lat, double lng, String rpU, int c){
@@ -347,6 +347,7 @@ public class MapActivity extends AppCompatActivity
     }
 
     public void checkPreferences(ArrayList<Report> rpt){
+        System.out.println("TESST "+category);
         String category_name = category;
         //loop to see if requirements are met.
         for(int i=0; i<rpt.size(); i++){
@@ -428,7 +429,7 @@ public class MapActivity extends AppCompatActivity
 
         String category_name = category;
         builder.setContentTitle(category_name + " sighted!");
-        builder.setContentText("Someone reported a " + category_name + "sighting in your area.");
+        builder.setContentText("Someone reported a " + category_name + " sighting in your area.");
 
         builder.setSmallIcon(R.mipmap.ic_launcher);
 
