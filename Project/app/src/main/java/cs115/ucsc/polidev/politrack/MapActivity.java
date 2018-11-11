@@ -64,7 +64,7 @@ public class MapActivity extends AppCompatActivity
             OnMyLocationButtonClickListener,
             ActivityCompat.OnRequestPermissionsResultCallback {
 
-    TextToSpeech toSpeech; //for text to speach notification
+    TextToSpeech toSpeech; //for text to speech notification
 
     //Request code for location permission request
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -86,6 +86,8 @@ public class MapActivity extends AppCompatActivity
     //store lat and long of current location
     static double lat2 = 0.0;
     static double lon2 = 0.0;
+    // flag for fetch report
+    private boolean LOCK_REPORT_DATA_CHANGE = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -123,10 +125,14 @@ public class MapActivity extends AppCompatActivity
         database.child("UserData").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
+                for(DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     User tdm = postSnapshot.getValue(User.class);
-                    if(tdm.userEmail.equals(MainActivity.userEmail)){
+                    if (tdm.userEmail.equals(MainActivity.userEmail)) {
                         category = tdm.category;
+                        // refresh activity
+                        LOCK_REPORT_DATA_CHANGE = true;
+                        refreshMap();
+                        LOCK_REPORT_DATA_CHANGE = false;
                         // change position value based on category (probably better solution but this works for now)
                         //
                         final Spinner mySpinner = findViewById(R.id.spinner1);
@@ -142,11 +148,11 @@ public class MapActivity extends AppCompatActivity
                             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 category = (String) parent.getItemAtPosition(position);
                                 int index = MainActivity.userEmail.indexOf('@');
-                                String cu = MainActivity.userEmail.substring(0,index);
+                                String cu = MainActivity.userEmail.substring(0, index);
                                 database.child("UserData").child(cu).child("category").setValue(category);
-                                // refresh activity
-                                mMap.clear();
-                                rpt = fetchrpt();
+                                LOCK_REPORT_DATA_CHANGE = true;
+                                refreshMap();
+                                LOCK_REPORT_DATA_CHANGE = false;
                             }
 
                             @Override
@@ -154,12 +160,8 @@ public class MapActivity extends AppCompatActivity
 
                             }
                         });
-                        //
-                        // update report list in onCreate
-                        rpt = fetchrpt();
                     }
                 }
-
             }
 
             @Override
@@ -183,15 +185,11 @@ public class MapActivity extends AppCompatActivity
                 }
             }
         });
-        //toSpeech.speak(text,TextToSpeech.QUEUE_FLUSH,null);
-
-
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        rpt = fetchrpt();
     }
 
     public ArrayList<Report> fetchrpt(){
@@ -204,10 +202,16 @@ public class MapActivity extends AppCompatActivity
                     Report tdm = postSnapshot.getValue(Report.class);
                     list.add(tdm);
                 }
-                // testing
-                refreshMap();
-                checkPreferences(list);
-                //notifySighting();
+                System.out.println("WOW DATA "+currUserMail);
+                try{
+                    checkPreferences(list);
+                }catch(Exception e){
+                    System.out.println("ERROR 'boolean java.lang.String.equals(java.lang.Object)' on a null object reference'");
+                }
+                System.out.println("NNIHAO fetchrpt "+ LOCK_REPORT_DATA_CHANGE);
+                if(!LOCK_REPORT_DATA_CHANGE){
+                    notifySighting();
+                }
             }
 
             @Override
@@ -217,11 +221,7 @@ public class MapActivity extends AppCompatActivity
         });
         return list;
     }
-    /**
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we
-     * just add a marker near Africa.
-     */
+
     private Circle drawCircle(LatLng latLng){
         CircleOptions options = new CircleOptions()
                 .center(latLng)
@@ -240,7 +240,7 @@ public class MapActivity extends AppCompatActivity
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
         enableMyLocation();
-        refreshMap();
+        // initialize refresh here
     }
 
      //Enables the My Location layer if the fine location permission has been granted.
@@ -416,12 +416,11 @@ public class MapActivity extends AppCompatActivity
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this,channel_id);
 
-        Intent i = new Intent(this, MainActivity.class);
+        Intent i = new Intent(this, MapActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent intent = PendingIntent.getActivity(this, 0, i,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(intent);
-
 
         Intent verify = new Intent(this, verify.class);
         verify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -429,6 +428,7 @@ public class MapActivity extends AppCompatActivity
 
         String category_name = category;
         builder.setContentTitle(category_name + " sighted!");
+
         builder.setContentText("Someone reported a " + category_name + " sighting in your area.");
 
         builder.setSmallIcon(R.mipmap.ic_launcher);
@@ -440,7 +440,7 @@ public class MapActivity extends AppCompatActivity
         Notification notification = builder.build();
 
         notificationManager.notify(NOTIFICATION_ID, notification);
-
+        speak ("Someone reported a " + category_name + " sighting in your area.");
     }
 
 
@@ -458,16 +458,12 @@ public class MapActivity extends AppCompatActivity
         super.onDestroy();
     }
 
-
-
-    private void refreshMap(){
-        Button btnMap = findViewById(R.id.btnRefresh);
-        btnMap.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-                startActivity(getIntent());
-            }
-        });
+    public void refreshMap(){
+        try{
+            mMap.clear();
+        }catch(Exception e){
+            System.out.println("ERROR: void com.google.android.gms.maps.GoogleMap.clear()' on a null object reference");
+        }
+        rpt = fetchrpt();
     }
 }
