@@ -5,16 +5,12 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -24,27 +20,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 import android.speech.tts.TextToSpeech;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Hashtable;
+import java.util.List;
 import java.util.Locale;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -81,13 +73,11 @@ public class MapActivity extends AppCompatActivity
     private String currUserMail;
     //firebase
     DatabaseReference database;
-    //fetch all report from db
-    ArrayList<Report> rpt;
-    //store lat and long of current location
-    static double lat2 = 0.0;
-    static double lon2 = 0.0;
-    // flag for fetch report
-    private boolean LOCK_REPORT_DATA_CHANGE = false;
+    //Store current coordinates
+    static double latitude = 0.0;
+    static double longitude = 0.0;
+    //Store reference to reports
+    static List<Report> lastKnownReports = new ArrayList<Report>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -130,11 +120,7 @@ public class MapActivity extends AppCompatActivity
                     if (tdm.userEmail.equals(MainActivity.userEmail)) {
                         category = tdm.category;
                         // refresh activity
-                        LOCK_REPORT_DATA_CHANGE = true;
-                        refreshMap();
-                        LOCK_REPORT_DATA_CHANGE = false;
                         // change position value based on category (probably better solution but this works for now)
-                        //
                         final Spinner mySpinner = findViewById(R.id.spinner1);
                         ArrayAdapter<CharSequence> myAdapter = ArrayAdapter.createFromResource(getApplicationContext(),
                                 R.array.names, android.R.layout.simple_spinner_item);
@@ -150,9 +136,8 @@ public class MapActivity extends AppCompatActivity
                                 int index = MainActivity.userEmail.indexOf('@');
                                 String cu = MainActivity.userEmail.substring(0, index);
                                 database.child("UserData").child(cu).child("category").setValue(category);
-                                LOCK_REPORT_DATA_CHANGE = true;
+                                // clear map and reload with new category
                                 refreshMap();
-                                LOCK_REPORT_DATA_CHANGE = false;
                             }
 
                             @Override
@@ -171,8 +156,27 @@ public class MapActivity extends AppCompatActivity
 
         });
 
-        //testing API level thing
-        System.out.println("SDDK " +Build.VERSION.RELEASE);
+        // Experiment with new fetchReport
+        database.child("ReportData").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // access database to fill map with relevant markers.
+                try{
+                    mMap.clear();
+                }catch(Exception e){
+                    System.out.println("ERROR: void com.google.android.gms.maps.GoogleMap.clear()' on a null object reference");
+                }
+                lastKnownReports.clear();
+                fillMap(dataSnapshot);
+                System.out.println("PENCIL "+ lastKnownReports.get(0).getTime());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+        //
 
         toSpeech=new TextToSpeech(MapActivity.this, new TextToSpeech.OnInitListener() {
             @Override
@@ -187,39 +191,18 @@ public class MapActivity extends AppCompatActivity
         });
     }
 
+    private void fillMap(DataSnapshot dataSnapshot) {
+        for(DataSnapshot ds : dataSnapshot.getChildren()){
+            Report reportInformation = ds.getValue(Report.class);
+            lastKnownReports.add(reportInformation);
+            // get current coordinates and call check preference
+            getCurrentLatitudeLongitude(reportInformation.getLatit(), reportInformation.getLongit(), reportInformation.getType());
+        }
+    }
+
     @Override
     public void onResume(){
         super.onResume();
-    }
-
-    public ArrayList<Report> fetchrpt(){
-        final ArrayList<Report> list = new ArrayList<>();
-        DatabaseReference dr = FirebaseDatabase.getInstance().getReference().child("ReportData");
-        dr.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot postSnapshot : dataSnapshot.getChildren()){
-                    Report tdm = postSnapshot.getValue(Report.class);
-                    list.add(tdm);
-                }
-                System.out.println("WOW DATA "+currUserMail);
-                try{
-                    checkPreferences(list);
-                }catch(Exception e){
-                    System.out.println("ERROR 'boolean java.lang.String.equals(java.lang.Object)' on a null object reference'");
-                }
-                System.out.println("NNIHAO fetchrpt "+ LOCK_REPORT_DATA_CHANGE);
-                if(!LOCK_REPORT_DATA_CHANGE){
-                    notifySighting();
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-        return list;
     }
 
     private Circle drawCircle(LatLng latLng){
@@ -271,8 +254,47 @@ public class MapActivity extends AppCompatActivity
         //kevin's edit
         UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
         // temporarily make the map refresh when a new report is made. Can relocate this ones we figure out how to pull data anytime.
-        checkPreferences(rpt);
+        //TEMPcheckPreferences(rpt);
         // --------------------------------------------------------
+    }
+
+    private void UploadReport(String typ, String t, double lat, double lng, String rpU, int c){
+        cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,rpU,c);
+        //rpt.add(report);
+        //database.child("ReportData").setValue(rpt);
+    }
+
+    public void checkPreferences(double lat1, double lon1, double lat2, double lon2, String type){
+        String category_name = category;
+        //check if category name is correct
+        if(category_name.equals(type)){
+            // check if radius is correct
+            if(checkRadius(lat1, lon1, lat2, lon2)){
+                addIndicator(lat1, lon1);
+            }
+        }
+    }
+
+    public boolean checkRadius(final double lat1, final double lon1, final double lat2, final double lon2){
+        //do the formula to get the distance between two points. Compare the distance to radius.
+        double R = 6371000;
+        double var1 = Math.toRadians(lat1);
+        double var2 = Math.toRadians(lat2);
+        double var3 = Math.toRadians(lat2-lat1);
+        double var4 = Math.toRadians(lon2-lon1);
+
+        double a = Math.sin(var3/2) * Math.sin(var3/2) +
+                Math.cos(var1) * Math.cos(var2) *
+                        Math.sin(var4/2) * Math.sin(var4/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double d = R * c;
+        d = d/1609.344; //convert to miles.
+        double radius = MainActivity.radius;
+        if(radius>=d){
+            return true;
+        }else{
+            return false;
+        }
     }
 
     public void addIndicator(double latitude, double longitude){
@@ -302,16 +324,10 @@ public class MapActivity extends AppCompatActivity
         Toast.makeText(this, "Refreshed.", Toast.LENGTH_LONG).show();
     }
 
-    private void UploadReport(String typ, String t, double lat, double lng, String rpU, int c){
-        cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,rpU,c);
-        rpt.add(report);
-        database.child("ReportData").setValue(rpt);
-    }
-
-    public boolean checkRadius(final double lat1, final double lon1){
+    public void getCurrentLatitudeLongitude(final double lat1, final double lon1, final String type) {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return false;
+        if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
         }
         mFusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -320,46 +336,13 @@ public class MapActivity extends AppCompatActivity
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             // check the two points here.
-                            lat2 = location.getLatitude();
-                            lon2 = location.getLongitude();
+                            MapActivity.latitude = location.getLatitude();
+                            MapActivity.longitude = location.getLongitude();
+                            // call checkPreference once you get the current coordinates
+                            checkPreferences(lat1, lon1, latitude, longitude, type);
                         }
                     }
                 });
-        //do the formula to get the distance between two points. Compare the distance to radius.
-        double R = 6371000;
-        double var1 = Math.toRadians(lat1);
-        double var2 = Math.toRadians(lat2);
-        double var3 = Math.toRadians(lat2-lat1);
-        double var4 = Math.toRadians(lon2-lon1);
-
-        double a = Math.sin(var3/2) * Math.sin(var3/2) +
-                Math.cos(var1) * Math.cos(var2) *
-                        Math.sin(var4/2) * Math.sin(var4/2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        double d = R * c;
-        d = d/1609.344; //convert to miles.
-        double radius = MainActivity.radius;
-        if(radius>=d){
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    public void checkPreferences(ArrayList<Report> rpt){
-        System.out.println("TESST "+category);
-        String category_name = category;
-        //loop to see if requirements are met.
-        for(int i=0; i<rpt.size(); i++){
-            //check if category name is correct
-            if(category_name.equals(rpt.get(i).type) ){
-                // check if radius is correct
-                if(checkRadius(rpt.get(i).latit, rpt.get(i).longit)){
-                    System.out.println("JOSHH "+i+" "+rpt.get(i).type);
-                    addIndicator(rpt.get(i).latit, rpt.get(i).longit);
-                }
-            }
-        }
     }
 
     @Override
@@ -464,6 +447,10 @@ public class MapActivity extends AppCompatActivity
         }catch(Exception e){
             System.out.println("ERROR: void com.google.android.gms.maps.GoogleMap.clear()' on a null object reference");
         }
-        rpt = fetchrpt();
+        for(int i=0; i<lastKnownReports.size(); i++){
+            System.out.println("PENCIL "+ lastKnownReports.get(i).getTime());
+            // call checkPreference once you get the current coordinates
+            checkPreferences(lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), latitude, longitude, lastKnownReports.get(i).getType());
+        }
     }
 }
