@@ -43,6 +43,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -78,6 +79,8 @@ public class MapActivity extends AppCompatActivity
     static double longitude = 0.0;
     //Store reference to reports
     static List<Report> lastKnownReports = new ArrayList<Report>();
+    //Store a flag to indicated when to send notification
+    static int SKIP_INITIAL_ONDATACHANGE = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -119,7 +122,6 @@ public class MapActivity extends AppCompatActivity
                     User tdm = postSnapshot.getValue(User.class);
                     if (tdm.userEmail.equals(MainActivity.userEmail)) {
                         category = tdm.category;
-                        // refresh activity
                         // change position value based on category (probably better solution but this works for now)
                         final Spinner mySpinner = findViewById(R.id.spinner1);
                         ArrayAdapter<CharSequence> myAdapter = ArrayAdapter.createFromResource(getApplicationContext(),
@@ -166,9 +168,14 @@ public class MapActivity extends AppCompatActivity
                 }catch(Exception e){
                     System.out.println("ERROR: void com.google.android.gms.maps.GoogleMap.clear()' on a null object reference");
                 }
+                // clear list of reports and fill with new reports from the snapshot
                 lastKnownReports.clear();
                 fillMap(dataSnapshot);
-                System.out.println("PENCIL "+ lastKnownReports.get(0).getTime());
+                if(SKIP_INITIAL_ONDATACHANGE==0){
+                    SKIP_INITIAL_ONDATACHANGE++;
+                }else{
+                    notifySighting();
+                }
             }
 
             @Override
@@ -251,17 +258,15 @@ public class MapActivity extends AppCompatActivity
     @Override
     public void onMyLocationClick(@NonNull Location location){
         addIndicator(location.getLatitude(), location.getLongitude());
-        //kevin's edit
+        // reset SKIP_INITIAL_ONDATACHANGE to avoid getting notified on something you reported.
+        SKIP_INITIAL_ONDATACHANGE = 0;
         UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
-        // temporarily make the map refresh when a new report is made. Can relocate this ones we figure out how to pull data anytime.
-        //TEMPcheckPreferences(rpt);
-        // --------------------------------------------------------
     }
 
     private void UploadReport(String typ, String t, double lat, double lng, String rpU, int c){
         cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,rpU,c);
-        //rpt.add(report);
-        //database.child("ReportData").setValue(rpt);
+        lastKnownReports.add(report);
+        database.child("ReportData").setValue(lastKnownReports);
     }
 
     public void checkPreferences(double lat1, double lon1, double lat2, double lon2, String type){
