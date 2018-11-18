@@ -191,10 +191,14 @@ public class MapActivity extends AppCompatActivity
                 }else if(REPORT_LENGTH<NEW_REPORT_LENGTH){
                     // check if the category is the same
                     if(category.equals(dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("type").getValue())){
+
                         notifySighting();
+
                         while(verify_flag){ //if user clicked verify
                             int new_count =(int)dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getValue() + 1;
-                            dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getRef().setValue(new_count);
+                            //dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getRef().setValue(new_count);
+                            database.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").setValue(new_count);
+
                             verify_flag = false; //reset flag
                         }
 
@@ -477,6 +481,9 @@ public class MapActivity extends AppCompatActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             verify_flag = true;
+            //int new_count = Integer.parseInt(database.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getKey());
+            //database.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").setValue(new_count);
+
             //update_database();
             NotificationManagerCompat.from(context).cancel(123);
         }
