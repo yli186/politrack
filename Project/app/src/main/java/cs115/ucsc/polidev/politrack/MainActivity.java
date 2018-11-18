@@ -64,11 +64,11 @@ public class MainActivity extends AppCompatActivity {
                         radius = tdm.prefRadius;
                         System.out.println("saved radius" +radius);
                         if(radius==100){
-                            radiusView.setText("Radius = " + radius + "+ miles");
+                            radiusView.setText("Notification Radius = " + radius + "+ miles");
                         }else if(radius==1){
-                            radiusView.setText("Radius = " + radius + " mile");
+                            radiusView.setText("Notification Radius = " + radius + " mile");
                         }else{
-                            radiusView.setText("Radius = " + radius + " miles");
+                            radiusView.setText("Notification Radius = " + radius + " miles");
                         }
                         radiusBar.setProgress(radius);
                     }
