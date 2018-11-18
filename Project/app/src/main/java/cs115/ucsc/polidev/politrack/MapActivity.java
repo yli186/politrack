@@ -191,7 +191,7 @@ public class MapActivity extends AppCompatActivity
                 }else if(REPORT_LENGTH<NEW_REPORT_LENGTH){
                     // check if the category is the same
                     if(category.equals(dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("type").getValue())){
-                        int count =(int)dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getValue();
+                        long count = (long) dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getValue();
                         notifySighting(NEW_REPORT_LENGTH-1, count);
 
                         /*
@@ -424,7 +424,7 @@ public class MapActivity extends AppCompatActivity
         notifySighting(0,5);
     }
 
-    public void notifySighting(int index, int count) {
+    public void notifySighting(int index, long count) {
         int NOTIFICATION_ID = 123;
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
