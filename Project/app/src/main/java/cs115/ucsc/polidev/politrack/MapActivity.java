@@ -81,6 +81,8 @@ public class MapActivity extends AppCompatActivity
     static List<Report> lastKnownReports = new ArrayList<Report>();
     //Store a flag to indicated when to send notification
     static int SKIP_INITIAL_ONDATACHANGE = 0;
+    //Store length of report list to see if previous report list and new report list is same length
+    static int REPORT_LENGTH = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -158,7 +160,7 @@ public class MapActivity extends AppCompatActivity
 
         });
 
-        // Experiment with new fetchReport
+        //new fetchReport
         database.child("ReportData").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -168,13 +170,19 @@ public class MapActivity extends AppCompatActivity
                 }catch(Exception e){
                     System.out.println("ERROR: void com.google.android.gms.maps.GoogleMap.clear()' on a null object reference");
                 }
+                System.out.println("HOLY "+dataSnapshot.child("1").child("type").getValue());
                 // clear list of reports and fill with new reports from the snapshot
+                REPORT_LENGTH = lastKnownReports.size(); // save the previous length of the report list to see if a new report was added
+                int NEW_REPORT_LENGTH = (int) dataSnapshot.getChildrenCount(); // create a local int variable to store the length of report list
                 lastKnownReports.clear();
                 fillMap(dataSnapshot);
                 if(SKIP_INITIAL_ONDATACHANGE==0){
                     SKIP_INITIAL_ONDATACHANGE++;
-                }else{
-                    notifySighting();
+                }else if(REPORT_LENGTH<NEW_REPORT_LENGTH){
+                    // check if the category is the same
+                    if(category.equals(dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("type").getValue())){
+                        notifySighting();
+                    }
                 }
             }
 
@@ -183,7 +191,6 @@ public class MapActivity extends AppCompatActivity
 
             }
         });
-        //
 
         toSpeech=new TextToSpeech(MapActivity.this, new TextToSpeech.OnInitListener() {
             @Override
@@ -326,7 +333,7 @@ public class MapActivity extends AppCompatActivity
                     longitude)).title(category_name + " " +
                     Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_fountain)));
         }
-        Toast.makeText(this, "Refreshed.", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Refreshed.", Toast.LENGTH_SHORT).show();
     }
 
     public void getCurrentLatitudeLongitude(final double lat1, final double lon1, final String type) {
