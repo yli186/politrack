@@ -1,6 +1,7 @@
 package cs115.ucsc.polidev.politrack;
+import java.io.Serializable;
 
-public class Report {
+public class Report implements Serializable{
     public String type;
     public String time;
     public double latit;
@@ -41,4 +42,9 @@ public class Report {
     public int getCount(){
         return count;
     }
+
+    public void inc_count(){
+        this.count = this.getCount() + 1;
+    }
+
 }

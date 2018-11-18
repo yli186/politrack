@@ -15,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -49,6 +50,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import java.io.Serializable;
+import android.support.v4.content.LocalBroadcastManager;
+import android.content.BroadcastReceiver;
+import android.content.*;
 
 public class MapActivity extends AppCompatActivity
             implements
@@ -83,11 +88,16 @@ public class MapActivity extends AppCompatActivity
     static int SKIP_INITIAL_ONDATACHANGE = 0;
     //Store length of report list to see if previous report list and new report list is same length
     static int REPORT_LENGTH = 0;
+    static boolean verify_flag = false;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        registerReceiver(broadcastReceiver, new IntentFilter("verify"));
+
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -182,6 +192,12 @@ public class MapActivity extends AppCompatActivity
                     // check if the category is the same
                     if(category.equals(dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("type").getValue())){
                         notifySighting();
+                        while(verify_flag){ //if user clicked verify
+                            int new_count =(int)dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getValue() + 1;
+                            dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getRef().setValue(new_count);
+                            verify_flag = false; //reset flag
+                        }
+
                     }
                 }
             }
@@ -273,6 +289,10 @@ public class MapActivity extends AppCompatActivity
     private void UploadReport(String typ, String t, double lat, double lng, String rpU, int c){
         cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,rpU,c);
         lastKnownReports.add(report);
+        database.child("ReportData").setValue(lastKnownReports);
+    }
+
+    public void update_database(){
         database.child("ReportData").setValue(lastKnownReports);
     }
 
@@ -391,6 +411,14 @@ public class MapActivity extends AppCompatActivity
                 .newInstance(true).show(getSupportFragmentManager(), "dialog");
     }
 
+
+    public void notifyme(View view){
+
+        cs115.ucsc.polidev.politrack.Report report = new Report("Police","Sat Nov 17 21:22:47 PST 2018",5,5,"kwang36@ucsc.edu",1);
+        notifySighting(
+        );
+    }
+
     public void notifySighting() {
         int NOTIFICATION_ID = 123;
 
@@ -411,6 +439,7 @@ public class MapActivity extends AppCompatActivity
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this,channel_id);
 
+
         Intent i = new Intent(this, MapActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent intent = PendingIntent.getActivity(this, 0, i,
@@ -418,10 +447,14 @@ public class MapActivity extends AppCompatActivity
         builder.setContentIntent(intent);
 
         Intent verify = new Intent(this, verify.class);
+
+        //verify.putExtra("report", report);
+
         verify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent VerifyPendingIntent = PendingIntent.getActivity(this, 0, verify, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent VerifyPendingIntent = PendingIntent.getBroadcast(this, 0, verify, PendingIntent.FLAG_UPDATE_CURRENT);
 
         String category_name = category;
+
         builder.setContentTitle(category_name + " sighted!");
 
         builder.setContentText("Someone reported a " + category_name + " sighting in your area.");
@@ -436,7 +469,19 @@ public class MapActivity extends AppCompatActivity
 
         notificationManager.notify(NOTIFICATION_ID, notification);
         speak ("Someone reported a " + category_name + " sighting in your area.");
+
     }
+
+
+    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            verify_flag = true;
+            //update_database();
+            NotificationManagerCompat.from(context).cancel(123);
+        }
+    };
+
 
 
     private void speak(String text){
@@ -451,6 +496,7 @@ public class MapActivity extends AppCompatActivity
             toSpeech.shutdown();
         }
         super.onDestroy();
+        unregisterReceiver(broadcastReceiver);
     }
 
     public void refreshMap(){

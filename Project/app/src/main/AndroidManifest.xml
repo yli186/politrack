@@ -33,10 +33,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="verify"></activity>
         <activity android:name=".MapActivity" />
         <activity android:name=".MainActivity" />
         <activity android:name=".NewUserActivity"></activity>
+        <receiver android:name=".verify" />
+
         //Tile stuff
         <service android:name=".MyTileService"
             android:label="@string/tile"

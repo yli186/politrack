@@ -1,27 +1,27 @@
 package cs115.ucsc.polidev.politrack;
 
+import android.content.BroadcastReceiver;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 import android.view.View;
 import android.content.Intent;
+import android.content.Context;
+import android.widget.Toast;
 
-public class verify extends AppCompatActivity {
-    static int counter = 0;
+
+import static cs115.ucsc.polidev.politrack.MapActivity.lastKnownReports;
+
+public class verify extends BroadcastReceiver {
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_verify);
-        counter++;
+    public void onReceive(Context context, Intent intent) {
 
-        TextView count = (TextView) findViewById(R.id.counter_text_view);
-        count.setText(String.valueOf(counter));
+        //cs115.ucsc.polidev.politrack.Report extras = (cs115.ucsc.polidev.politrack.Report)intent.getSerializableExtra("report");
+        //extras.inc_count();
+        //lastKnownReports.add(extras);
 
-    }
+        context.sendBroadcast(new Intent("verify"));
 
-    public void back(View view){
-        Intent i=new Intent(this, MapActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(i);
     }
 }

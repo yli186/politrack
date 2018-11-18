@@ -6,7 +6,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="02cf5ad7-f960-45ae-87de-5f7c0a034ba0" name="Default" comment="" />
+    <list default="true" id="02cf5ad7-f960-45ae-87de-5f7c0a034ba0" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/Project/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Project/.idea/misc.xml" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,7 +19,7 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectFrameBounds">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="580" />
     <option name="y" value="220" />
     <option name="width" value="1400" />
@@ -28,8 +30,9 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
+      <pane id="AndroidView" />
       <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -37,11 +40,28 @@
               <item name="politrack" type="b2602c69:ProjectViewProjectNode" />
               <item name="politrack" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="politrack" type="b2602c69:ProjectViewProjectNode" />
+              <item name="politrack" type="462c0819:PsiDirectoryNode" />
+              <item name="Project" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="politrack" type="b2602c69:ProjectViewProjectNode" />
+              <item name="politrack" type="462c0819:PsiDirectoryNode" />
+              <item name="Project" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="politrack" type="b2602c69:ProjectViewProjectNode" />
+              <item name="politrack" type="462c0819:PsiDirectoryNode" />
+              <item name="Project" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="AndroidView" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -121,7 +141,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="580" y="220" width="1400" height="1000" extended-state="0" />
+    <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="right" id="Palette&#9;" order="3" />
@@ -133,7 +153,7 @@
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Capture Tool" order="2" />
       <window_info id="Designer" order="2" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.46549192" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.333113" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Theme Preview" order="3" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
