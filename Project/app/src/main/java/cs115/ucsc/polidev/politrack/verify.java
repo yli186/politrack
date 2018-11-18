@@ -17,11 +17,14 @@ public class verify extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
+        int ind = intent.getIntExtra("index", 0);
+        int count = intent.getIntExtra("count", 1);
         //cs115.ucsc.polidev.politrack.Report extras = (cs115.ucsc.polidev.politrack.Report)intent.getSerializableExtra("report");
         //extras.inc_count();
         //lastKnownReports.add(extras);
-
-        context.sendBroadcast(new Intent("verify"));
-
+        Intent v_intent = new Intent("verify");
+        v_intent.putExtra("index", ind);
+        v_intent.putExtra("count", count);
+        context.sendBroadcast(v_intent);
     }
 }

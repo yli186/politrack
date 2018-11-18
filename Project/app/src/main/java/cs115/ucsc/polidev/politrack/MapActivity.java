@@ -191,9 +191,10 @@ public class MapActivity extends AppCompatActivity
                 }else if(REPORT_LENGTH<NEW_REPORT_LENGTH){
                     // check if the category is the same
                     if(category.equals(dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("type").getValue())){
+                        int count =(int)dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getValue();
+                        notifySighting(NEW_REPORT_LENGTH-1, count);
 
-                        notifySighting();
-
+                        /*
                         while(verify_flag){ //if user clicked verify
                             int new_count =(int)dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getValue() + 1;
                             //dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getRef().setValue(new_count);
@@ -201,6 +202,7 @@ public class MapActivity extends AppCompatActivity
 
                             verify_flag = false; //reset flag
                         }
+                        */
 
                     }
                 }
@@ -418,12 +420,11 @@ public class MapActivity extends AppCompatActivity
 
     public void notifyme(View view){
 
-        cs115.ucsc.polidev.politrack.Report report = new Report("Police","Sat Nov 17 21:22:47 PST 2018",5,5,"kwang36@ucsc.edu",1);
-        notifySighting(
-        );
+        //cs115.ucsc.polidev.politrack.Report report = new Report("Police","Sat Nov 17 21:22:47 PST 2018",5,5,"kwang36@ucsc.edu",1);
+        notifySighting(0,5);
     }
 
-    public void notifySighting() {
+    public void notifySighting(int index, int count) {
         int NOTIFICATION_ID = 123;
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -451,7 +452,8 @@ public class MapActivity extends AppCompatActivity
         builder.setContentIntent(intent);
 
         Intent verify = new Intent(this, verify.class);
-
+        verify.putExtra("index",index);
+        verify.putExtra("count", count);
         //verify.putExtra("report", report);
 
         verify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -481,10 +483,10 @@ public class MapActivity extends AppCompatActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             verify_flag = true;
-            //int new_count = Integer.parseInt(database.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getKey());
-            //database.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").setValue(new_count);
-
-            //update_database();
+            int index = intent.getIntExtra("index",0);
+            int count = intent.getIntExtra("count",1);
+            //increment count upon verification
+            database.child("ReportData").child(Integer.toString(index)).child("count").setValue(count+1);
             NotificationManagerCompat.from(context).cancel(123);
         }
     };
