@@ -304,16 +304,18 @@ public class MapActivity extends AppCompatActivity
 
     public void checkPreferences(double lat1, double lon1, double lat2, double lon2, String type){
         String category_name = category;
+        double radius = MainActivity.radius;
+        System.out.println("checkPreferences "+radius);
         //check if category name is correct
         if(category_name.equals(type)){
             // check if radius is correct
-            if(checkRadius(lat1, lon1, lat2, lon2)){
+            if(checkRadius(lat1, lon1, lat2, lon2, radius)){
                 addIndicator(lat1, lon1);
             }
         }
     }
 
-    public boolean checkRadius(final double lat1, final double lon1, final double lat2, final double lon2){
+    public boolean checkRadius(final double lat1, final double lon1, final double lat2, final double lon2, final double radius){
         //do the formula to get the distance between two points. Compare the distance to radius.
         double R = 6371000;
         double var1 = Math.toRadians(lat1);
@@ -327,8 +329,9 @@ public class MapActivity extends AppCompatActivity
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         double d = R * c;
         d = d/1609.344; //convert to miles.
-        double radius = MainActivity.radius;
-        if(radius>=d){
+        if(radius >= d) {
+            return true;
+        }else if(radius == 100 && d > radius){
             return true;
         }else{
             return false;
