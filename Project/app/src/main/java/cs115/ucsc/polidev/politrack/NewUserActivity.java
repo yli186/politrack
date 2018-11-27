@@ -48,9 +48,8 @@ public class NewUserActivity extends Activity {
         startActivity(intent);
     }
     private void writeNewUser(){
-        cs115.ucsc.polidev.politrack.User user = new User(NameStore,UsernameStore,PasswordStore, 0, "Police", 0);
+        cs115.ucsc.polidev.politrack.User user = new User(NameStore, UsernameStore, PasswordStore, 0, "Police", 0, true);
         database.child("UserData").child(ChoppedUser).setValue(user);
-
     }
     public void Return (View v){
 
@@ -73,7 +72,7 @@ public class NewUserActivity extends Activity {
 
                         } else {
                             // If sign in fails, display a message to the user.
-                            Toast.makeText(cs115.ucsc.polidev.politrack.NewUserActivity.this, "Authentication failed.",
+                            Toast.makeText(cs115.ucsc.polidev.politrack.NewUserActivity.this, "Authentication failed!",
                                     Toast.LENGTH_SHORT).show();
 
                         }

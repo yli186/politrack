@@ -15,8 +15,7 @@ public class MyTileService extends TileService {
     private int toggleState = STATE_ON;
 
     @Override
-    public void onTileAdded(){
-        Log.d(LOG_TAG, "onTileAdded");
+    public void onTileAdded(){ Log.d(LOG_TAG, "onTileAdded");
     }
 
     @Override
@@ -41,9 +40,11 @@ public class MyTileService extends TileService {
         if(toggleState == STATE_ON){
             toggleState = STATE_OFF;
             icon = Icon.createWithResource(getApplicationContext(), R.drawable.bench);
+            MainActivity.toggleSwitch(toggleState);
         }else{
             toggleState = STATE_ON;
             icon = Icon.createWithResource(getApplicationContext(), R.drawable.toilet);
+            MainActivity.toggleSwitch(toggleState);
         }
 
         getQsTile().setIcon(icon);

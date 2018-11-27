@@ -54,6 +54,11 @@ import java.io.Serializable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.content.BroadcastReceiver;
 import android.content.*;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.widget.Toast;
 
 public class MapActivity extends AppCompatActivity
             implements
@@ -64,6 +69,11 @@ public class MapActivity extends AppCompatActivity
 
     TextToSpeech toSpeech; //for text to speech notification
 
+    // shake feature
+    private SensorManager sm;
+    private float acelVal; // CURRENT ACCELERATION VALUE AND GRAVITY.
+    private float acelLast; // LAST ACCELERATION VALUE AND GRAVITY.
+    private float shake; // ACCELERATION VALUE differ FROM GRAVITY.
     //Request code for location permission request
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     static String category = "default";
@@ -192,7 +202,10 @@ public class MapActivity extends AppCompatActivity
                     // check if the category is the same
                     if(category.equals(dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("type").getValue())){
                         long count = (long) dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getValue();
-                        notifySighting(NEW_REPORT_LENGTH-1, count);
+                        // check if notification is turned on
+                        if(MainActivity.notificationOnOff == true){
+                            notifySighting(NEW_REPORT_LENGTH-1, count);
+                        }
                     }
                 }
             }
@@ -214,14 +227,44 @@ public class MapActivity extends AppCompatActivity
                 }
             }
         });
+
+        sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        sm.registerListener(sensorListener, sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+
+        acelVal = SensorManager.GRAVITY_EARTH;
+        acelLast = SensorManager.GRAVITY_EARTH;
+        shake = 0.00f;
     }
+
+    private final SensorEventListener sensorListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            float x = event.values[0];
+            float y = event.values[1];
+            float z = event.values[2];
+
+            acelLast = acelVal;
+            acelVal = (float) Math.sqrt((double) (x*x + y*y + z*z));
+            float delta = acelVal - acelLast;
+            shake = shake * 0.9f + delta;
+
+            if (shake > 12){
+                getCurrentLatitudeLongitude(0.0, 0.0, "Shake", 0, "Shake");
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+        }
+    };
 
     private void fillMap(DataSnapshot dataSnapshot) {
         for(DataSnapshot ds : dataSnapshot.getChildren()){
             Report reportInformation = ds.getValue(Report.class);
             lastKnownReports.add(reportInformation);
             // get current coordinates and call check preference
-            getCurrentLatitudeLongitude(reportInformation.getLatit(), reportInformation.getLongit(), reportInformation.getType(), reportInformation.getCount());
+            getCurrentLatitudeLongitude(reportInformation.getLatit(), reportInformation.getLongit(), reportInformation.getType(), reportInformation.getCount(), reportInformation.getTime());
         }
     }
 
@@ -277,18 +320,19 @@ public class MapActivity extends AppCompatActivity
     public void onMyLocationClick(@NonNull Location location){
         // reset SKIP_INITIAL_ONDATACHANGE to avoid getting notified on something you reported.
         SKIP_INITIAL_ONDATACHANGE = 0;
-        System.out.println("I FORGOT "+lastKnownReports);
-        UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
+        UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc);
     }
 
-    private void UploadReport(String typ, String t, double lat, double lng, String rpU, int c){
+    private void UploadReport(String typ, String t, double lat, double lng, String rpU){
         // check if the location you just reported is within range of another report. If it is then update count. If not, send a new report.
         if(checkDuplicateReport(typ, t, lat, lng)){ // send updated reports to the database
             database.child("ReportData").setValue(lastKnownReports);
+            Toast.makeText(this, "Existing sighting verified!", Toast.LENGTH_SHORT).show();
         }else{
-            cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,rpU,c);
+            cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,rpU,1);
             lastKnownReports.add(report);
             database.child("ReportData").setValue(lastKnownReports);
+            Toast.makeText(this, "New sighting reported!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -296,15 +340,19 @@ public class MapActivity extends AppCompatActivity
         database.child("ReportData").setValue(lastKnownReports);
     }
 
-    public void checkPreferences(double lat1, double lon1, double lat2, double lon2, String type, int count){
-        String category_name = category;
-        double radius = MainActivity.radius;
-        System.out.println("checkPreferences "+radius);
-        //check if category name is correct
-        if(category_name.equals(type)){
-            // check if radius is correct
-            if(checkRadius(lat1, lon1, lat2, lon2, radius)){
-                addIndicator(lat1, lon1, count);
+    public void checkPreferences(double lat1, double lon1, double lat2, double lon2, String type, int count, String time){
+        if(lat1 == 0.0 && lon1 == 0.0 && type.equals("Shake") && count == 0 && time.equals("Shake")){// lazy solution but I think it works
+            UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), lat2, lon2, LoginActivity.nAcc);
+        }else{
+            String category_name = category;
+            double radius = MainActivity.radius;
+            System.out.println("checkPreferences "+radius);
+            //check if category name is correct
+            if(category_name.equals(type)){
+                // check if radius is correct
+                if(checkRadius(lat1, lon1, lat2, lon2, radius)){
+                    addIndicator(lat1, lon1, count, time);
+                }
             }
         }
     }
@@ -332,84 +380,84 @@ public class MapActivity extends AppCompatActivity
         }
     }
 
-    public void addIndicator(double latitude, double longitude, int count){
+    public void addIndicator(double latitude, double longitude, int count, String time){
         GoogleMap map = mMap;
         String category_name = category;
         if(category_name.equals("Police")){
             if(count == 1){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.police_1)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.police_1)));
             }else if (count == 2){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.police_2)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.police_2)));
             }else{
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.police_3)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.police_3)));
             }
         }else if(category_name.equals("Protest/Strikes")){
             if(count == 1){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_1)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_1)));
             }else if (count == 2){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_2)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_2)));
             }else{
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_3)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_3)));
             }
         }else if(category_name.equals("Bench")){
             if(count == 1){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_1)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_1)));
             }else if (count == 2){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_2)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_2)));
             }else{
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_3)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_3)));
             }
         }else if(category_name.equals("Public Bathroom")){
             if(count == 1){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_1)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_1)));
             }else if (count == 2){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_2)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_2)));
             }else{
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_3)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_3)));
             }
         }else if(category_name.equals("Water Fountains")){
             if(count == 1){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_1)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_1)));
             }else if (count == 2){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_2)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_2)));
             }else{
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                        longitude)).title(category_name + " " +
-                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_3)));
+                        longitude)).title("Count: " + count + ". Last Reported:  " +
+                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_3)));
             }
         }
-        Toast.makeText(this, "Refreshed.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Refreshed!", Toast.LENGTH_SHORT).show();
     }
 
-    public void getCurrentLatitudeLongitude(final double lat1, final double lon1, final String type, final int count) {
+    public void getCurrentLatitudeLongitude(final double lat1, final double lon1, final String type, final int count, final String time) {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -424,7 +472,7 @@ public class MapActivity extends AppCompatActivity
                             MapActivity.latitude = location.getLatitude();
                             MapActivity.longitude = location.getLongitude();
                             // call checkPreference once you get the current coordinates
-                            checkPreferences(lat1, lon1, latitude, longitude, type, count);
+                            checkPreferences(lat1, lon1, latitude, longitude, type, count, time);
                         }
                     }
                 });
@@ -558,7 +606,7 @@ public class MapActivity extends AppCompatActivity
     public boolean checkDuplicateReport(String type, String time, double latitude, double longitude){
         for(int i=0; i<lastKnownReports.size(); i++){
             if(type.equals(lastKnownReports.get(i).getType())){
-                if(checkRadius(latitude, longitude, lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), 1.0)){
+                if(checkRadius(latitude, longitude, lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), 0.1)){
                     //change value of count
                     lastKnownReports.get(i).setCount();
                     lastKnownReports.get(i).setTime(time);
@@ -578,7 +626,7 @@ public class MapActivity extends AppCompatActivity
         for(int i=0; i<lastKnownReports.size(); i++){
             System.out.println("PENCIL "+ lastKnownReports.get(i).getTime());
             // call checkPreference once you get the current coordinates
-            checkPreferences(lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), latitude, longitude, lastKnownReports.get(i).getType(), lastKnownReports.get(i).getCount());
+            checkPreferences(lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), latitude, longitude, lastKnownReports.get(i).getType(), lastKnownReports.get(i).getCount(), lastKnownReports.get(i).getTime());
         }
     }
 }

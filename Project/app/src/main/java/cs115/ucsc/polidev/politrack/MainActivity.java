@@ -12,8 +12,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
@@ -31,10 +33,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     static int radius = 0;
     static int time = 0;
+    static boolean notificationOnOff = true;
     private static final int ERROR_DIALOG_REQUEST = 9001;
 
     static String userEmail;
-    DatabaseReference database;
+    static DatabaseReference database;
 
     //this is the radius variables
     private TextView radiusView;
@@ -43,6 +46,10 @@ public class MainActivity extends AppCompatActivity {
     //this is the time variables
     private TextView timeView;
     private SeekBar timeBar;
+
+    //this is the switch variable
+    static Switch notificationToggle;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
         //code for time onCreate
         timeView = findViewById(R.id.timeView);
         timeBar = findViewById(R.id.timeBar);
+        //code for switch onCreate
+        notificationToggle = findViewById(R.id.switch1);
+
         //load radius and time
         database.child("UserData").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -70,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
                     if(tdm.userEmail.equals(userEmail)){
                         radius = tdm.prefRadius;
                         time =tdm.prefTime;
+                        notificationOnOff = tdm.prefNotification;
                         System.out.println("saved radius" +radius);
                         System.out.println("saved time" +time);
                         if(radius==100){
@@ -88,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         radiusBar.setProgress(radius);
                         timeBar.setProgress(time);
+                        notificationToggle.setChecked(notificationOnOff);
                     }
                 }
 
@@ -99,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+
         timeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -156,6 +169,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         //end of code for radius
+
+        notificationToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                int index = userEmail.indexOf('@');
+                String cu = userEmail.substring(0,index);
+                database.child("UserData").child(cu).child("prefNotification").setValue(isChecked);
+            }
+        });
+    }
+
+    public static void toggleSwitch(int toggleState){
+        int index = userEmail.indexOf('@');
+        String cu = userEmail.substring(0,index);
+        if(toggleState == 1){
+            notificationToggle.setChecked(true);
+            database.child("UserData").child(cu).child("prefNotification").setValue(true);
+        }else{
+            notificationToggle.setChecked(false);
+            database.child("UserData").child(cu).child("prefNotification").setValue(false);
+        }
     }
 
     private void init(){
