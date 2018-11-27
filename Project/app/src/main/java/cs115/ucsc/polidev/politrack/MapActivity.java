@@ -232,7 +232,7 @@ public class MapActivity extends AppCompatActivity
             Report reportInformation = ds.getValue(Report.class);
             lastKnownReports.add(reportInformation);
             // get current coordinates and call check preference
-            getCurrentLatitudeLongitude(reportInformation.getLatit(), reportInformation.getLongit(), reportInformation.getType());
+            getCurrentLatitudeLongitude(reportInformation.getLatit(), reportInformation.getLongit(), reportInformation.getType(), reportInformation.getCount());
         }
     }
 
@@ -286,7 +286,6 @@ public class MapActivity extends AppCompatActivity
     // Will use this to report current location
     @Override
     public void onMyLocationClick(@NonNull Location location){
-        addIndicator(location.getLatitude(), location.getLongitude());
         // reset SKIP_INITIAL_ONDATACHANGE to avoid getting notified on something you reported.
         SKIP_INITIAL_ONDATACHANGE = 0;
         UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
@@ -302,7 +301,7 @@ public class MapActivity extends AppCompatActivity
         database.child("ReportData").setValue(lastKnownReports);
     }
 
-    public void checkPreferences(double lat1, double lon1, double lat2, double lon2, String type){
+    public void checkPreferences(double lat1, double lon1, double lat2, double lon2, String type, int count){
         String category_name = category;
         double radius = MainActivity.radius;
         System.out.println("checkPreferences "+radius);
@@ -310,7 +309,7 @@ public class MapActivity extends AppCompatActivity
         if(category_name.equals(type)){
             // check if radius is correct
             if(checkRadius(lat1, lon1, lat2, lon2, radius)){
-                addIndicator(lat1, lon1);
+                addIndicator(lat1, lon1, count);
             }
         }
     }
@@ -338,34 +337,84 @@ public class MapActivity extends AppCompatActivity
         }
     }
 
-    public void addIndicator(double latitude, double longitude){
+    public void addIndicator(double latitude, double longitude, int count){
         GoogleMap map = mMap;
         String category_name = category;
         if(category_name.equals("Police")){
-            map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                    longitude)).title(category_name + " " +
-                    Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_police)));
+            if(count == 1){
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.police_1)));
+            }else if (count == 2){
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.police_2)));
+            }else{
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.police_3)));
+            }
         }else if(category_name.equals("Protest/Strikes")){
-            map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                    longitude)).title(category_name + " " +
-                    Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_protest)));
+            if(count == 1){
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_1)));
+            }else if (count == 2){
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_2)));
+            }else{
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_3)));
+            }
         }else if(category_name.equals("Bench")){
-            map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                    longitude)).title(category_name + " " +
-                    Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_bench)));
+            if(count == 1){
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_1)));
+            }else if (count == 2){
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_2)));
+            }else{
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_3)));
+            }
         }else if(category_name.equals("Public Bathroom")){
-            map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                    longitude)).title(category_name + " " +
-                    Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_toilet)));
+            if(count == 1){
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_1)));
+            }else if (count == 2){
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_2)));
+            }else{
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_3)));
+            }
         }else if(category_name.equals("Water Fountains")){
-            map.addMarker(new MarkerOptions().position(new LatLng(latitude,
-                    longitude)).title(category_name + " " +
-                    Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.indicator_fountain)));
+            if(count == 1){
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_1)));
+            }else if (count == 2){
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_2)));
+            }else{
+                map.addMarker(new MarkerOptions().position(new LatLng(latitude,
+                        longitude)).title(category_name + " " +
+                        Calendar.getInstance().getTime()).icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_3)));
+            }
         }
         Toast.makeText(this, "Refreshed.", Toast.LENGTH_SHORT).show();
     }
 
-    public void getCurrentLatitudeLongitude(final double lat1, final double lon1, final String type) {
+    public void getCurrentLatitudeLongitude(final double lat1, final double lon1, final String type, final int count) {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -380,7 +429,7 @@ public class MapActivity extends AppCompatActivity
                             MapActivity.latitude = location.getLatitude();
                             MapActivity.longitude = location.getLongitude();
                             // call checkPreference once you get the current coordinates
-                            checkPreferences(lat1, lon1, latitude, longitude, type);
+                            checkPreferences(lat1, lon1, latitude, longitude, type, count);
                         }
                     }
                 });
@@ -520,7 +569,7 @@ public class MapActivity extends AppCompatActivity
         for(int i=0; i<lastKnownReports.size(); i++){
             System.out.println("PENCIL "+ lastKnownReports.get(i).getTime());
             // call checkPreference once you get the current coordinates
-            checkPreferences(lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), latitude, longitude, lastKnownReports.get(i).getType());
+            checkPreferences(lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), latitude, longitude, lastKnownReports.get(i).getType(), lastKnownReports.get(i).getCount());
         }
     }
 }

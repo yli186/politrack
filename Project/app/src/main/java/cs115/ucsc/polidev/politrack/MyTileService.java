@@ -40,10 +40,10 @@ public class MyTileService extends TileService {
         Icon icon;
         if(toggleState == STATE_ON){
             toggleState = STATE_OFF;
-            icon = Icon.createWithResource(getApplicationContext(), R.drawable.indicator_bench);
+            icon = Icon.createWithResource(getApplicationContext(), R.drawable.bench);
         }else{
             toggleState = STATE_ON;
-            icon = Icon.createWithResource(getApplicationContext(), R.drawable.indicator_toilet);
+            icon = Icon.createWithResource(getApplicationContext(), R.drawable.toilet);
         }
 
         getQsTile().setIcon(icon);
