@@ -193,17 +193,6 @@ public class MapActivity extends AppCompatActivity
                     if(category.equals(dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("type").getValue())){
                         long count = (long) dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getValue();
                         notifySighting(NEW_REPORT_LENGTH-1, count);
-
-                        /*
-                        while(verify_flag){ //if user clicked verify
-                            int new_count =(int)dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getValue() + 1;
-                            //dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getRef().setValue(new_count);
-                            database.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").setValue(new_count);
-
-                            verify_flag = false; //reset flag
-                        }
-                        */
-
                     }
                 }
             }
@@ -288,13 +277,19 @@ public class MapActivity extends AppCompatActivity
     public void onMyLocationClick(@NonNull Location location){
         // reset SKIP_INITIAL_ONDATACHANGE to avoid getting notified on something you reported.
         SKIP_INITIAL_ONDATACHANGE = 0;
+        System.out.println("I FORGOT "+lastKnownReports);
         UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc, 1);
     }
 
     private void UploadReport(String typ, String t, double lat, double lng, String rpU, int c){
-        cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,rpU,c);
-        lastKnownReports.add(report);
-        database.child("ReportData").setValue(lastKnownReports);
+        // check if the location you just reported is within range of another report. If it is then update count. If not, send a new report.
+        if(checkDuplicateReport(typ, t, lat, lng)){ // send updated reports to the database
+            database.child("ReportData").setValue(lastKnownReports);
+        }else{
+            cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,rpU,c);
+            lastKnownReports.add(report);
+            database.child("ReportData").setValue(lastKnownReports);
+        }
     }
 
     public void update_database(){
@@ -558,6 +553,20 @@ public class MapActivity extends AppCompatActivity
         }
         super.onDestroy();
         unregisterReceiver(broadcastReceiver);
+    }
+
+    public boolean checkDuplicateReport(String type, String time, double latitude, double longitude){
+        for(int i=0; i<lastKnownReports.size(); i++){
+            if(type.equals(lastKnownReports.get(i).getType())){
+                if(checkRadius(latitude, longitude, lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), 1.0)){
+                    //change value of count
+                    lastKnownReports.get(i).setCount();
+                    lastKnownReports.get(i).setTime(time);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public void refreshMap(){

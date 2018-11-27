@@ -21,6 +21,10 @@ public class Report implements Serializable{
 
     }
 
+    public void setCount(){ this.count = this.getCount() + 1; }
+
+    public void setTime(String new_time){ this.time = new_time; }
+
     public String getType() {
         return type;
     }
@@ -42,9 +46,4 @@ public class Report implements Serializable{
     public int getCount(){
         return count;
     }
-
-    public void inc_count(){
-        this.count = this.getCount() + 1;
-    }
-
 }
