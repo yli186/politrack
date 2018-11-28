@@ -124,7 +124,7 @@ public class MapActivity extends AppCompatActivity
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             // Logic to handle location object
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 12));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15));
                             drawCircle(new LatLng(location.getLatitude(), location.getLongitude()));
                         }
                     }
@@ -248,7 +248,7 @@ public class MapActivity extends AppCompatActivity
             float delta = acelVal - acelLast;
             shake = shake * 0.9f + delta;
 
-            if (shake > 12){
+            if (shake > 20){
                 getCurrentLatitudeLongitude(0.0, 0.0, "Shake", 0, "Shake");
             }
         }

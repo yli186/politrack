@@ -24,6 +24,8 @@ public class LoginActivity extends Activity {
     static String nAcc;
     private String nPass;
 
+    static boolean SWITCH_ON = false;
+
 
 
     //firebase
@@ -74,6 +76,7 @@ public class LoginActivity extends Activity {
     }
 
     public void makeNew(String s, String x){
+        SWITCH_ON = true;
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("UserEmail", s);
         intent.putExtra("UserPass", x);
