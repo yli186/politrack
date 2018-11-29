@@ -251,7 +251,7 @@ public class MapActivity extends AppCompatActivity
             shake = shake * 0.9f + delta;
 
             if (shake > 20){
-                getCurrentLatitudeLongitude(0.0, 0.0, "Shake", 0, "Shake");
+                getCurrentLatitudeLongitude(0.0, 0.0, "Shake", 0, String.valueOf(Calendar.getInstance().getTime()));
             }
         }
 
@@ -344,7 +344,7 @@ public class MapActivity extends AppCompatActivity
     }
 
     public void checkPreferences(double lat1, double lon1, double lat2, double lon2, String type, int count, String time){
-        if(lat1 == 0.0 && lon1 == 0.0 && type.equals("Shake") && count == 0 && time.equals("Shake")){// lazy solution but I think it works
+        if(lat1 == 0.0 && lon1 == 0.0 && type.equals("Shake") && count == 0){// lazy solution but I think it works
             System.out.println("DOES THIS WORK");
             if(checkDuplicateReport(type, time, lat2, lon2)){ // if there are duplicate reports then update count and update report list
                 database.child("ReportData").setValue(lastKnownReports);
@@ -602,8 +602,13 @@ public class MapActivity extends AppCompatActivity
             verify_flag = true;
             int index = intent.getIntExtra("index",0);
             int count = intent.getIntExtra("count",1);
-            //increment count upon verification
-            database.child("ReportData").child(Integer.toString(index)).child("count").setValue(count+1);
+            //Check if this user already reported a sighting for this location
+            System.out.println("TESTING " + lastKnownReports.get(index).reportedUser);
+            if(!checkDuplicateUser(lastKnownReports.get(index).reportedUser)){
+                lastKnownReports.get(index).addUser(LoginActivity.nAcc); // add user to list
+                lastKnownReports.get(index).setCount(); // increment count
+                database.child("ReportData").setValue(lastKnownReports);
+            }
             NotificationManagerCompat.from(context).cancel(123);
         }
     };
