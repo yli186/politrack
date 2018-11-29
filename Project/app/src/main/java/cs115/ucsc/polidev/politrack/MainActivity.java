@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     static int radius = 0;
     static int time = 0;
-    static boolean notificationOnOff = true;
+    static boolean notificationOn = true;
     private static final int ERROR_DIALOG_REQUEST = 9001;
 
     static String userEmail;
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                     if(tdm.userEmail.equals(userEmail)){
                         radius = tdm.prefRadius;
                         time =tdm.prefTime;
-                        notificationOnOff = tdm.prefNotification;
+                        notificationOn = tdm.prefNotification;
                         System.out.println("saved radius" +radius);
                         System.out.println("saved time" +time);
                         if(radius==100){
@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         radiusBar.setProgress(radius);
                         timeBar.setProgress(time);
-                        notificationToggle.setChecked(notificationOnOff);
+                        notificationToggle.setChecked(notificationOn);
                     }
                 }
 
@@ -176,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
                 int index = userEmail.indexOf('@');
                 String cu = userEmail.substring(0,index);
                 database.child("UserData").child(cu).child("prefNotification").setValue(isChecked);
+                notificationOn = isChecked;
             }
         });
     }
@@ -187,9 +188,11 @@ public class MainActivity extends AppCompatActivity {
             if(toggleState == 1){
                 notificationToggle.setChecked(true);
                 database.child("UserData").child(cu).child("prefNotification").setValue(true);
+                notificationOn = true;
             }else{
                 notificationToggle.setChecked(false);
                 database.child("UserData").child(cu).child("prefNotification").setValue(false);
+                notificationOn = true;
             }
         }
     }

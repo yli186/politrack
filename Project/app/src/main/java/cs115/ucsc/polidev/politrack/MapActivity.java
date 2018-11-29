@@ -18,6 +18,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -26,6 +27,7 @@ import android.widget.Toast;
 import android.speech.tts.TextToSpeech;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -197,14 +199,14 @@ public class MapActivity extends AppCompatActivity
                 lastKnownReports.clear();
                 fillMap(dataSnapshot);
                 if(SKIP_INITIAL_ONDATACHANGE==0){
-                    SKIP_INITIAL_ONDATACHANGE++;
+                    SKIP_INITIAL_ONDATACHANGE++; // skip initial report notification
                 }else if(REPORT_LENGTH<NEW_REPORT_LENGTH){
                     // check if the category is the same
                     if(category.equals(dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("type").getValue())){
                         long count = (long) dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("count").getValue();
                         // check if notification is turned on
-                        if(MainActivity.notificationOnOff == true){
-                            notifySighting(NEW_REPORT_LENGTH-1, count);
+                        if(MainActivity.notificationOn){
+                            checkReportRadius((double) dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("latit").getValue(), (double) dataSnapshot.child(String.valueOf(NEW_REPORT_LENGTH-1)).child("longit").getValue(), NEW_REPORT_LENGTH-1, count);
                         }
                     }
                 }
@@ -329,7 +331,8 @@ public class MapActivity extends AppCompatActivity
             database.child("ReportData").setValue(lastKnownReports);
             Toast.makeText(this, "Existing sighting verified!", Toast.LENGTH_SHORT).show();
         }else{
-            cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,rpU,1);
+            List<String> reportedUser = Arrays.asList(LoginActivity.nAcc);
+            cs115.ucsc.polidev.politrack.Report report = new Report(typ,t,lat,lng,reportedUser,1);
             lastKnownReports.add(report);
             database.child("ReportData").setValue(lastKnownReports);
             Toast.makeText(this, "New sighting reported!", Toast.LENGTH_SHORT).show();
@@ -342,7 +345,12 @@ public class MapActivity extends AppCompatActivity
 
     public void checkPreferences(double lat1, double lon1, double lat2, double lon2, String type, int count, String time){
         if(lat1 == 0.0 && lon1 == 0.0 && type.equals("Shake") && count == 0 && time.equals("Shake")){// lazy solution but I think it works
-            UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), lat2, lon2, LoginActivity.nAcc);
+            System.out.println("DOES THIS WORK");
+            if(checkDuplicateReport(type, time, lat2, lon2)){ // if there are duplicate reports then update count and update report list
+                database.child("ReportData").setValue(lastKnownReports);
+            }else{ // if there are no duplicates, then add new report and update report list
+                UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), lat2, lon2, LoginActivity.nAcc);
+            }
         }else{
             String category_name = category;
             double radius = MainActivity.radius;
@@ -478,6 +486,27 @@ public class MapActivity extends AppCompatActivity
                 });
     }
 
+    public void checkReportRadius(final double lat1, final double lon1, final int report_length, final long count) {
+        System.out.println("DOES IT WORK?");
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            // check the two points here.
+                            if(checkRadius(lat1, lon1, location.getLatitude(), location.getLongitude(), MainActivity.radius)){
+                                notifySighting(report_length, count);
+                            }
+                        }
+                    }
+                });
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -510,13 +539,6 @@ public class MapActivity extends AppCompatActivity
     private void showMissingPermissionError() {
         PermissionUtils.PermissionDeniedDialog
                 .newInstance(true).show(getSupportFragmentManager(), "dialog");
-    }
-
-
-    public void notifyme(View view){
-
-        //cs115.ucsc.polidev.politrack.Report report = new Report("Police","Sat Nov 17 21:22:47 PST 2018",5,5,"kwang36@ucsc.edu",1);
-        notifySighting(0,5);
     }
 
     public void notifySighting(int index, long count) {
@@ -604,14 +626,32 @@ public class MapActivity extends AppCompatActivity
     }
 
     public boolean checkDuplicateReport(String type, String time, double latitude, double longitude){
-        for(int i=0; i<lastKnownReports.size(); i++){
-            if(type.equals(lastKnownReports.get(i).getType())){
-                if(checkRadius(latitude, longitude, lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), 0.1)){
-                    //change value of count
-                    lastKnownReports.get(i).setCount();
-                    lastKnownReports.get(i).setTime(time);
-                    return true;
+        System.out.println("BRUH + "+lastKnownReports);
+        for(int i=0; i<lastKnownReports.size(); i++){ // iterate through reports
+            if(type.equals(lastKnownReports.get(i).getType())){ // continue if category type is the same
+                if(checkRadius(latitude, longitude, lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), 0.1)){ // continue if the two reports are within 0.1 miles
+                    //check if user is already in the list
+                    System.out.println("BRUH "+lastKnownReports.get(i).getReportedUser());
+                    if(!checkDuplicateUser(lastKnownReports.get(i).getReportedUser())){
+                        //change value of count
+                        lastKnownReports.get(i).setCount();
+                        lastKnownReports.get(i).setTime(time);
+                        lastKnownReports.get(i).addUser(LoginActivity.nAcc);
+                        return true;
+                    }else{
+                        return true; // skip duplicate report
+                    }
                 }
+            }
+        }
+        return false;
+    }
+
+    public boolean checkDuplicateUser(List<String> userList){
+        for(int i = 0; i < userList.size(); i++){
+            userList.get(i);
+            if(LoginActivity.nAcc.equals(userList.get(i))){
+                return true;
             }
         }
         return false;
@@ -624,7 +664,6 @@ public class MapActivity extends AppCompatActivity
             System.out.println("ERROR: void com.google.android.gms.maps.GoogleMap.clear()' on a null object reference");
         }
         for(int i=0; i<lastKnownReports.size(); i++){
-            System.out.println("PENCIL "+ lastKnownReports.get(i).getTime());
             // call checkPreference once you get the current coordinates
             checkPreferences(lastKnownReports.get(i).getLatit(), lastKnownReports.get(i).getLongit(), latitude, longitude, lastKnownReports.get(i).getType(), lastKnownReports.get(i).getCount(), lastKnownReports.get(i).getTime());
         }
