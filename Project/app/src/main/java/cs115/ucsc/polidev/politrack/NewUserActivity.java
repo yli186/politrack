@@ -48,7 +48,7 @@ public class NewUserActivity extends Activity {
         startActivity(intent);
     }
     private void writeNewUser(){
-        cs115.ucsc.polidev.politrack.User user = new User(NameStore, UsernameStore, PasswordStore, 0, "Police", 0, true);
+        cs115.ucsc.polidev.politrack.User user = new User(NameStore, UsernameStore, PasswordStore, 0, "Police", 0, true, true);
         database.child("UserData").child(ChoppedUser).setValue(user);
     }
     public void Return (View v){

@@ -127,7 +127,7 @@ public class MapActivity extends AppCompatActivity
                         if (location != null) {
                             // Logic to handle location object
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15));
-                            drawCircle(new LatLng(location.getLatitude(), location.getLongitude()));
+                            //drawCircle(new LatLng(location.getLatitude(), location.getLongitude()));
                         }
                     }
                 });
@@ -250,7 +250,7 @@ public class MapActivity extends AppCompatActivity
             float delta = acelVal - acelLast;
             shake = shake * 0.9f + delta;
 
-            if (shake > 20){
+            if (shake > 14 && MainActivity.shakeOn){
                 getCurrentLatitudeLongitude(0.0, 0.0, "Shake", 0, String.valueOf(Calendar.getInstance().getTime()));
             }
         }
@@ -607,6 +607,7 @@ public class MapActivity extends AppCompatActivity
             if(!checkDuplicateUser(lastKnownReports.get(index).reportedUser)){
                 lastKnownReports.get(index).addUser(LoginActivity.nAcc); // add user to list
                 lastKnownReports.get(index).setCount(); // increment count
+                lastKnownReports.get(index).setTime(String.valueOf(Calendar.getInstance().getTime()));
                 database.child("ReportData").setValue(lastKnownReports);
             }
             NotificationManagerCompat.from(context).cancel(123);

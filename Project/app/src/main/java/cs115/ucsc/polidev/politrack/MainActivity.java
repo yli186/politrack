@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     static int radius = 0;
     static int time = 0;
     static boolean notificationOn = true;
+    static boolean shakeOn = true;
     private static final int ERROR_DIALOG_REQUEST = 9001;
 
     static String userEmail;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     //this is the switch variable
     static Switch notificationToggle;
+    static Switch shakeToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         timeBar = findViewById(R.id.timeBar);
         //code for switch onCreate
         notificationToggle = findViewById(R.id.switch1);
+        shakeToggle = findViewById(R.id.switch2);
 
         //load radius and time
         database.child("UserData").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -80,7 +83,8 @@ public class MainActivity extends AppCompatActivity {
                     if(tdm.userEmail.equals(userEmail)){
                         radius = tdm.prefRadius;
                         time =tdm.prefTime;
-                        notificationOn = tdm.prefNotification;
+                        notificationOn = tdm.prefNotification; // pull preference for notification
+                        shakeOn = tdm.prefShake; // pull preference for shake
                         System.out.println("saved radius" +radius);
                         System.out.println("saved time" +time);
                         if(radius==100){
@@ -100,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
                         radiusBar.setProgress(radius);
                         timeBar.setProgress(time);
                         notificationToggle.setChecked(notificationOn);
+                        shakeToggle.setChecked(shakeOn);
                     }
                 }
 
@@ -170,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
         });
         //end of code for radius
 
+        // function to handle prefNotification
         notificationToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -177,6 +183,17 @@ public class MainActivity extends AppCompatActivity {
                 String cu = userEmail.substring(0,index);
                 database.child("UserData").child(cu).child("prefNotification").setValue(isChecked);
                 notificationOn = isChecked;
+            }
+        });
+
+        // function to handle prefNotification
+        shakeToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                int index = userEmail.indexOf('@');
+                String cu = userEmail.substring(0,index);
+                database.child("UserData").child(cu).child("prefShake").setValue(isChecked);
+                shakeOn = isChecked;
             }
         });
     }
