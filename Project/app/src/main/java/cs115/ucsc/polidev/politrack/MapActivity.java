@@ -541,6 +541,7 @@ public class MapActivity extends AppCompatActivity
                 .newInstance(true).show(getSupportFragmentManager(), "dialog");
     }
 
+    //send notification to user, takes in an index and count for verify action button
     public void notifySighting(int index, long count) {
         int NOTIFICATION_ID = 123;
 
@@ -548,6 +549,8 @@ public class MapActivity extends AppCompatActivity
         String channel_id = "channel_1";
         CharSequence name = "channel";
         int importance = NotificationManager.IMPORTANCE_HIGH;
+
+        //setup for different android versions
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
 
             NotificationChannel mChannel = new NotificationChannel(channel_id, name, importance);
@@ -561,41 +564,39 @@ public class MapActivity extends AppCompatActivity
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this,channel_id);
 
-
-        Intent i = new Intent(this, MapActivity.class);
+        Intent i = new Intent(this, MapActivity.class); //intent for notification
         i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
         PendingIntent intent = PendingIntent.getActivity(this, 0, i,
                 PendingIntent.FLAG_UPDATE_CURRENT);
+
         builder.setContentIntent(intent);
 
-        Intent verify = new Intent(this, verify.class);
-        verify.putExtra("index",index);
+        Intent verify = new Intent(this, verify.class); //verify action button
+
+        verify.putExtra("index",index); //pass in
         verify.putExtra("count", count);
-        //verify.putExtra("report", report);
 
         verify.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent VerifyPendingIntent = PendingIntent.getBroadcast(this, 0, verify, PendingIntent.FLAG_UPDATE_CURRENT);
 
         String category_name = category;
 
+        //settings for notification
         builder.setContentTitle(category_name + " sighted!");
-
         builder.setContentText("Someone reported a " + category_name + " sighting in your area.");
-
         builder.setSmallIcon(R.mipmap.ic_launcher);
-
         builder.addAction(R.mipmap.ic_launcher,"verify",VerifyPendingIntent);
-
         builder.setAutoCancel(true);
 
-        Notification notification = builder.build();
+        Notification notification = builder.build(); //build notification
 
-        notificationManager.notify(NOTIFICATION_ID, notification);
-        speak ("Someone reported a " + category_name + " sighting in your area.");
+        notificationManager.notify(NOTIFICATION_ID, notification);//send notification
+        speak ("Someone reported a " + category_name + " sighting in your area.");//text-to-speech
 
     }
 
-
+    //for receiving broadcast sent back from the verify intent
     BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -610,12 +611,12 @@ public class MapActivity extends AppCompatActivity
                 lastKnownReports.get(index).setTime(String.valueOf(Calendar.getInstance().getTime()));
                 database.child("ReportData").setValue(lastKnownReports);
             }
-            NotificationManagerCompat.from(context).cancel(123);
+            NotificationManagerCompat.from(context).cancel(123); //cancel the notification when action buttton clicked
         }
     };
 
 
-
+    //text-to-speech
     private void speak(String text){
         toSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null);
     }
