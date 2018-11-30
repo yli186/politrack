@@ -28,7 +28,7 @@ public class NewUserActivity extends Activity {
     static String PasswordStore;
     static String ChoppedUser;
 
-    //firebase
+    //firebase reference for login
     FirebaseAuth mAuth;
     DatabaseReference database;
 
@@ -42,15 +42,17 @@ public class NewUserActivity extends Activity {
         mAuth = FirebaseAuth.getInstance();
         database = FirebaseDatabase.getInstance().getReference();
     }
-
+    //for misclick use
     public void LoginReturn(View v){
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
     }
+    //initializing the user object
     private void writeNewUser(){
         cs115.ucsc.polidev.politrack.User user = new User(NameStore, UsernameStore, PasswordStore, 0, "Police", 0, true, true);
         database.child("UserData").child(ChoppedUser).setValue(user);
     }
+    //this chops the user email and store it as data, also authenticates new user
     public void Return (View v){
 
         this.NameStore = NameRegister.getText().toString();
@@ -82,7 +84,7 @@ public class NewUserActivity extends Activity {
 
 
     }
-
+    //goes back to login page once done
     public void SuccessReturn(){
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);

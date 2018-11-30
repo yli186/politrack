@@ -1,7 +1,7 @@
 package cs115.ucsc.polidev.politrack;
 import java.io.Serializable;
 import java.util.List;
-
+// This is the report class that an user can create. It stores important information about a signle report.
 public class Report implements Serializable{
     public String type;
     public String time;

@@ -1,5 +1,6 @@
 package cs115.ucsc.polidev.politrack;
 
+//This is the User object that has relevant information about a single user.
 public class User {
     public String userEmail;
     public String password;

@@ -14,6 +14,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
+//main login page, authenticates users to login.
 public class LoginActivity extends Activity {
 
     private Button login;
@@ -28,7 +29,7 @@ public class LoginActivity extends Activity {
 
 
 
-    //firebase
+    //firebase calls
     private FirebaseAuth mAuth;
 
     @Override
@@ -42,13 +43,13 @@ public class LoginActivity extends Activity {
         mAuth = FirebaseAuth.getInstance();
 
     }
-
+    //sign-up for an account
     public void GoToNewUser(View view){
         Intent intent = new Intent(this, NewUserActivity.class);
         startActivity(intent);
     }
 
-
+    //authenticates with firebase
     public void Login(View view){
         this.nAcc = account.getText().toString();
         this.nPass = password.getText().toString();
@@ -74,7 +75,7 @@ public class LoginActivity extends Activity {
                 });
 
     }
-
+    //saving user logins to database
     public void makeNew(String s, String x){
         SWITCH_ON = true;
         Intent intent = new Intent(this, MainActivity.class);
@@ -82,7 +83,7 @@ public class LoginActivity extends Activity {
         intent.putExtra("UserPass", x);
         startActivity(intent);
     }
-
+    //testing feature to bypass login
     public void bypass(View v){
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
