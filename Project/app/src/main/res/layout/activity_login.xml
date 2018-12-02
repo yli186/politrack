@@ -22,7 +22,7 @@
         android:fontFamily="@font/kalam_regular"
         android:text="Politrack"
         android:textColor="#52BE80"
-        android:textSize="40dp"
+        android:textSize="80dp"
         app:layout_constraintBottom_toTopOf="@+id/radiusView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.508"
