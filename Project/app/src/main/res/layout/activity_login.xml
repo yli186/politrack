@@ -38,7 +38,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="13dp"
         android:text="@string/newusr"
-        android:textColor="#0B5345"
+        android:textColor="#00e6e6"
         android:textSize="14sp" />
 
     <Button
@@ -65,12 +65,13 @@
         android:id="@+id/password"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/newusertext"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="223dp"
+        android:layout_marginBottom="203dp"
         android:ems="10"
         android:hint="Enter Password"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        android:textColorHint="#00e6e6" />
 
     <EditText
         android:id="@+id/account"
@@ -78,9 +79,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="282dp"
+        android:layout_marginBottom="259dp"
         android:ems="10"
         android:hint="Enter Account"
+        android:textColorHint="#00e6e6"
         android:visibility="visible"
         tools:layout_editor_absoluteX="72dp"
         tools:layout_editor_absoluteY="101dp" />
