@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/newaccount"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="13dp"
+        android:layout_marginBottom="6dp"
         android:text="@string/newusr"
         android:textColor="#00e6e6"
         android:textSize="14sp" />
