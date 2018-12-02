@@ -2,11 +2,13 @@ package cs115.ucsc.polidev.politrack;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -27,8 +29,6 @@ public class LoginActivity extends Activity {
 
     static boolean SWITCH_ON = false;
 
-
-
     //firebase calls
     private FirebaseAuth mAuth;
 
@@ -41,7 +41,6 @@ public class LoginActivity extends Activity {
         account = (EditText) findViewById(R.id.account);
         password = (EditText) findViewById(R.id.password);
         mAuth = FirebaseAuth.getInstance();
-
     }
     //sign-up for an account
     public void GoToNewUser(View view){
