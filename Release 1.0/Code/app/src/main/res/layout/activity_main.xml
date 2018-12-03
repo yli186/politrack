@@ -28,23 +28,22 @@
 
     <Button
         android:id="@+id/btnMap"
-        android:layout_width="391dp"
-        android:layout_height="wrap_content"
+        android:layout_width="312dp"
+        android:layout_height="40dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:text="Go to Map"
-        android:textSize="20sp"
-        android:textColor="@color/lightGreen"
         android:background="@drawable/button_shape"
+        android:text="Go to Map"
+        android:textColor="@color/lightGreen"
+        android:textSize="25sp"
         android:theme="@style/MyButton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.478"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.84" />
+        app:layout_constraintVertical_bias="0.872" />
 
     <TextView
         android:id="@+id/radiusView"
