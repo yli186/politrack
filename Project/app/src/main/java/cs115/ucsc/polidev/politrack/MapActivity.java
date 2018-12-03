@@ -29,6 +29,8 @@ import android.speech.tts.TextToSpeech;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -251,7 +253,7 @@ public class MapActivity extends AppCompatActivity
             shake = shake * 0.9f + delta;
 
             if (shake > 14 && MainActivity.shakeOn){
-                getCurrentLatitudeLongitude(0.0, 0.0, "Shake", 0, String.valueOf(Calendar.getInstance().getTime()));
+                getCurrentLatitudeLongitude(0.0, 0.0, "Shake", 0, Long.toString(System.currentTimeMillis()));
             }
         }
 
@@ -322,7 +324,7 @@ public class MapActivity extends AppCompatActivity
     public void onMyLocationClick(@NonNull Location location){
         // reset SKIP_INITIAL_ONDATACHANGE to avoid getting notified on something you reported.
         SKIP_INITIAL_ONDATACHANGE = 0;
-        UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc);
+        UploadReport(category, Long.toString(System.currentTimeMillis()), location.getLatitude(), location.getLongitude(), LoginActivity.nAcc);
     }
 
     private void UploadReport(String typ, String t, double lat, double lng, String rpU){
@@ -349,7 +351,7 @@ public class MapActivity extends AppCompatActivity
             if(checkDuplicateReport(type, time, lat2, lon2)){ // if there are duplicate reports then update count and update report list
                 database.child("ReportData").setValue(lastKnownReports);
             }else{ // if there are no duplicates, then add new report and update report list
-                UploadReport(category, String.valueOf(Calendar.getInstance().getTime()), lat2, lon2, LoginActivity.nAcc);
+                UploadReport(category, Long.toString(System.currentTimeMillis()), lat2, lon2, LoginActivity.nAcc);
             }
         }else{
             String category_name = category;
@@ -359,7 +361,9 @@ public class MapActivity extends AppCompatActivity
             if(category_name.equals(type)){
                 // check if radius is correct
                 if(checkRadius(lat1, lon1, lat2, lon2, radius)){
-                    addIndicator(lat1, lon1, count, time);
+                    if (checkTime(time, MainActivity.time)){
+                        addIndicator(lat1, lon1, count, time);
+                    }
                 }
             }
         }
@@ -388,78 +392,99 @@ public class MapActivity extends AppCompatActivity
         }
     }
 
+    public  boolean checkTime(String reported_time, int hour_preference){
+        long reported_time_long = Long.parseLong(reported_time); //convert reported time to long. Stored as string
+        long current_time = System.currentTimeMillis(); // store current time
+        long hour = 3600000*Long.valueOf(hour_preference); //this is epoche
+        current_time -= hour; //update current time by subtracting the number of hours to it
+        System.out.println(current_time);
+        System.out.println(reported_time_long);
+        if(hour_preference == 0){
+            return false;
+        }else if(hour_preference == 100) {
+            return true;
+        }else if(current_time >= reported_time_long){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     public void addIndicator(double latitude, double longitude, int count, String time){
         GoogleMap map = mMap;
         String category_name = category;
+        long reported_time_long = Long.parseLong(time);
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm");
+
         if(category_name.equals("Police")){
             if(count == 1){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.police_1)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.police_1)));
             }else if (count == 2){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.police_2)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.police_2)));
             }else{
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.police_3)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.police_3)));
             }
         }else if(category_name.equals("Protest/Strikes")){
             if(count == 1){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_1)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_1)));
             }else if (count == 2){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_2)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_2)));
             }else{
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_3)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.protest_3)));
             }
         }else if(category_name.equals("Bench")){
             if(count == 1){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_1)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_1)));
             }else if (count == 2){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_2)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_2)));
             }else{
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_3)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.bench_3)));
             }
         }else if(category_name.equals("Public Bathroom")){
             if(count == 1){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_1)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_1)));
             }else if (count == 2){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_2)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_2)));
             }else{
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_3)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.toilet_3)));
             }
         }else if(category_name.equals("Water Fountains")){
             if(count == 1){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_1)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_1)));
             }else if (count == 2){
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_2)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_2)));
             }else{
                 map.addMarker(new MarkerOptions().position(new LatLng(latitude,
                         longitude)).title("Count: " + count + ". Last Reported:  " +
-                        time + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_3)));
+                        sdf.format(new Date(reported_time_long)) + ".").icon(BitmapDescriptorFactory.fromResource(R.drawable.fountain_3)));
             }
         }
         Toast.makeText(this, "Refreshed!", Toast.LENGTH_SHORT).show();
@@ -608,7 +633,7 @@ public class MapActivity extends AppCompatActivity
             if(!checkDuplicateUser(lastKnownReports.get(index).reportedUser)){
                 lastKnownReports.get(index).addUser(LoginActivity.nAcc); // add user to list
                 lastKnownReports.get(index).setCount(); // increment count
-                lastKnownReports.get(index).setTime(String.valueOf(Calendar.getInstance().getTime()));
+                lastKnownReports.get(index).setTime(Long.toString(System.currentTimeMillis()));
                 database.child("ReportData").setValue(lastKnownReports);
             }
             NotificationManagerCompat.from(context).cancel(123); //cancel the notification when action buttton clicked
