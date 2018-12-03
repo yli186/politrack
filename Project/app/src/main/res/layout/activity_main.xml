@@ -38,6 +38,7 @@
         android:textSize="20sp"
         android:textColor="@color/lightGreen"
         android:background="@drawable/button_shape"
+        android:theme="@style/MyButton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.478"

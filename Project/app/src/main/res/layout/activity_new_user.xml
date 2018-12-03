@@ -83,7 +83,9 @@
         android:onClick="Return"
         android:text="Register"
         android:textColor="@color/lightGreen"
+        android:theme="@style/MyButton"
         android:background="@drawable/button_shape"/>
+
 
     <Button
         android:id="@+id/ReturnButton"

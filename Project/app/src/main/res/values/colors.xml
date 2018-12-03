@@ -4,6 +4,6 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
 
-    <color name = "lightBlue">#033e76</color>
+    <color name = "darkBlue">#033e76</color>
     <color name ="lightGreen">#03ae9b</color>
 </resources>

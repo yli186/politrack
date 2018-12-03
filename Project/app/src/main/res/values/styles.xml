@@ -9,7 +9,7 @@
     </style>
 
     <style name="MyButton" parent="Theme.AppCompat.Light">
-        <item name="colorControlHighlight">@color/lightBlue</item>
+        <item name="colorControlHighlight">@color/darkBlue</item>
 
     </style>
 
