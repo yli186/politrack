@@ -90,14 +90,14 @@
         android:id="@+id/RegisterButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/PasswordCheckRegister"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="276dp"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/button_shape"
         android:onClick="Return"
         android:text="Register"
         android:textColor="@color/lightGreen"
-        android:theme="@style/MyButton"
-        android:background="@drawable/button_shape"/>
+        android:theme="@style/MyButton" />
 
 
     <Button
