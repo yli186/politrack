@@ -22,10 +22,12 @@ public class NewUserActivity extends Activity {
     EditText NameRegister;
     EditText UsernameRegister;
     EditText PasswordRegister;
+    EditText PasswordCheckRegister;
 
     static String NameStore;
     static String UsernameStore;
     static String PasswordStore;
+    static String PasswordCheck;
     static String ChoppedUser;
 
     //firebase reference for login
@@ -39,6 +41,7 @@ public class NewUserActivity extends Activity {
         NameRegister = (EditText) findViewById(R.id.NameRegister);
         UsernameRegister = (EditText) findViewById(R.id.UsernameRegister);
         PasswordRegister = (EditText) findViewById(R.id.PasswordRegister);
+        PasswordCheckRegister = (EditText) findViewById(R.id.PasswordCheckRegister);
         mAuth = FirebaseAuth.getInstance();
         database = FirebaseDatabase.getInstance().getReference();
     }
@@ -58,30 +61,37 @@ public class NewUserActivity extends Activity {
         this.NameStore = NameRegister.getText().toString();
         this.UsernameStore = UsernameRegister.getText().toString();
         this.PasswordStore = PasswordRegister.getText().toString();
+        this.PasswordCheck =PasswordCheckRegister.getText().toString();
         int index = UsernameStore.indexOf('@');
         ChoppedUser = UsernameStore.substring(0,index);
 
-        mAuth.createUserWithEmailAndPassword(UsernameStore, PasswordStore)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Toast.makeText(cs115.ucsc.polidev.politrack.NewUserActivity.this, "Authentication succeed",
-                                    Toast.LENGTH_SHORT).show();
-                            writeNewUser();
-                            SuccessReturn();
+        //if passwords don't match, notify user and don't go to create user
+        if(!PasswordStore.equals(PasswordCheck)){
+            Toast.makeText(cs115.ucsc.polidev.politrack.NewUserActivity.this, "Passwords don't match, please check again",
+                    Toast.LENGTH_SHORT).show();
 
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Toast.makeText(cs115.ucsc.polidev.politrack.NewUserActivity.this, "Authentication failed!",
-                                    Toast.LENGTH_SHORT).show();
+        }else { //password matched
+            mAuth.createUserWithEmailAndPassword(UsernameStore, PasswordStore)
+                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                // Sign in success, update UI with the signed-in user's information
+                                Toast.makeText(cs115.ucsc.polidev.politrack.NewUserActivity.this, "Authentication succeed",
+                                        Toast.LENGTH_SHORT).show();
+                                writeNewUser();
+                                SuccessReturn();
 
+                            } else {
+                                // If sign in fails, display a message to the user.
+                                Toast.makeText(cs115.ucsc.polidev.politrack.NewUserActivity.this, "Authentication failed!",
+                                        Toast.LENGTH_SHORT).show();
+
+                            }
                         }
-                    }
-                });
+                    });
 
-
+        }
 
     }
     //goes back to login page once done
