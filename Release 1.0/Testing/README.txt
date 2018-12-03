@@ -1,1 +1,1 @@
-push unit testing docs to this directory and remove this txt after
+The Unit tests done by each team member about the module and the functional testing 
