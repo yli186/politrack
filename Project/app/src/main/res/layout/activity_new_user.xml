@@ -96,8 +96,7 @@
         android:background="@drawable/button_shape"
         android:onClick="Return"
         android:text="Register"
-        android:textColor="@color/lightGreen"
-        android:theme="@style/MyButton" />
+        android:textColor="@color/lightGreen" />
 
 
     <Button
