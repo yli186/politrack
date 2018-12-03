@@ -48,9 +48,14 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="41dp"
+        android:layout_marginBottom="36dp"
         android:onClick="GoToNewUser"
-        android:text="Create Account" />
+        android:text=" Create Account "
+        android:theme="@style/MyButton"
+        android:textStyle="bold"
+        android:textColor="@color/lightGreen"
+        android:textSize="12sp"
+        android:background="@drawable/button_shape"/>
 
     <Button
         android:id="@+id/login"
@@ -60,7 +65,14 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="141dp"
         android:onClick="Login"
-        android:text="Login" />
+        android:text="Login"
+        android:textStyle="bold"
+        android:textColor="@color/lightGreen"
+        android:theme="@style/MyButton"
+        android:textSize="15sp"
+        android:background="@drawable/button_shape"/>
+
+
 
     <EditText
         android:id="@+id/password"
