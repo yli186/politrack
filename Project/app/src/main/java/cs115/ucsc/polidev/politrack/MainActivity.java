@@ -198,17 +198,17 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public static void toggleSwitch(int toggleState){
+    public static void toggleSwitch(){
         if(LoginActivity.SWITCH_ON){
             int index = userEmail.indexOf('@');
             String cu = userEmail.substring(0,index);
-            if(toggleState == 1){
-                notificationToggle.setChecked(true);
-                database.child("UserData").child(cu).child("prefNotification").setValue(true);
-                notificationOn = true;
-            }else{
+            if(notificationOn){
                 notificationToggle.setChecked(false);
                 database.child("UserData").child(cu).child("prefNotification").setValue(false);
+                notificationOn = false;
+            }else{
+                notificationToggle.setChecked(true);
+                database.child("UserData").child(cu).child("prefNotification").setValue(true);
                 notificationOn = true;
             }
         }
