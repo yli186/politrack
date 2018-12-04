@@ -403,7 +403,7 @@ public class MapActivity extends AppCompatActivity
             return false;
         }else if(hour_preference == 100) {
             return true;
-        }else if(current_time >= reported_time_long){
+        }else if(current_time <= reported_time_long){
             return true;
         }else{
             return false;
