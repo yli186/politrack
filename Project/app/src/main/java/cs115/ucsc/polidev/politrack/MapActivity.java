@@ -631,10 +631,7 @@ public class MapActivity extends AppCompatActivity
             //Check if this user already reported a sighting for this location
             System.out.println("TESTING " + lastKnownReports.get(index).reportedUser);
             if(!checkDuplicateUser(lastKnownReports.get(index).reportedUser)){
-                lastKnownReports.get(index).addUser(LoginActivity.nAcc); // add user to list
-                lastKnownReports.get(index).setCount(); // increment count
-                lastKnownReports.get(index).setTime(Long.toString(System.currentTimeMillis()));
-                database.child("ReportData").setValue(lastKnownReports);
+                checkVerify(index); // check if the verify location is within the radius of the sighting.
             }
             NotificationManagerCompat.from(context).cancel(123); //cancel the notification when action buttton clicked
         }
@@ -649,10 +646,10 @@ public class MapActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
-        if (toSpeech != null) {
-            toSpeech.stop();
-            toSpeech.shutdown();
-        }
+        //if (toSpeech != null) {
+          //  toSpeech.stop();
+          //  toSpeech.shutdown();
+       // }
         super.onDestroy();
         unregisterReceiver(broadcastReceiver);
     }
@@ -687,6 +684,28 @@ public class MapActivity extends AppCompatActivity
             }
         }
         return false;
+    }
+
+    public void checkVerify(final int index){
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        }
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            // check the two points here.
+                            if(checkRadius(lastKnownReports.get(index).getLatit(), lastKnownReports.get(index).getLongit(), location.getLatitude(), location.getLongitude(), 0.1)){
+                                lastKnownReports.get(index).addUser(LoginActivity.nAcc); // add user to list
+                                lastKnownReports.get(index).setCount(); // increment count
+                                lastKnownReports.get(index).setTime(Long.toString(System.currentTimeMillis()));
+                                database.child("ReportData").setValue(lastKnownReports);
+                            }
+                        }
+                    }
+                });
     }
 
     public void refreshMap(){
