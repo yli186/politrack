@@ -646,10 +646,10 @@ public class MapActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
-        if (toSpeech != null) {
-            toSpeech.stop();
-            toSpeech.shutdown();
-        }
+        //if (toSpeech != null) {
+          //  toSpeech.stop();
+          //  toSpeech.shutdown();
+       // }
         super.onDestroy();
         unregisterReceiver(broadcastReceiver);
     }
