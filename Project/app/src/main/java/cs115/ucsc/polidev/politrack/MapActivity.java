@@ -631,7 +631,7 @@ public class MapActivity extends AppCompatActivity
             //Check if this user already reported a sighting for this location
             System.out.println("TESTING " + lastKnownReports.get(index).reportedUser);
             if(!checkDuplicateUser(lastKnownReports.get(index).reportedUser)){
-                checkVerify(lastKnownReports.get(index).getLatit(), lastKnownReports.get(index).getLatit(), index); // check if the verify location is within the radius of the sighting.
+                checkVerify(index); // check if the verify location is within the radius of the sighting.
             }
             NotificationManagerCompat.from(context).cancel(123); //cancel the notification when action buttton clicked
         }
@@ -686,7 +686,7 @@ public class MapActivity extends AppCompatActivity
         return false;
     }
 
-    public void checkVerify(final double latitude, final double longitude, final int index){
+    public void checkVerify(final int index){
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(MapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
         }
@@ -697,7 +697,7 @@ public class MapActivity extends AppCompatActivity
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             // check the two points here.
-                            if(checkRadius(latitude, longitude, location.getLatitude(), location.getLongitude(), 0.1)){
+                            if(checkRadius(lastKnownReports.get(index).getLatit(), lastKnownReports.get(index).getLongit(), location.getLatitude(), location.getLongitude(), 0.1)){
                                 lastKnownReports.get(index).addUser(LoginActivity.nAcc); // add user to list
                                 lastKnownReports.get(index).setCount(); // increment count
                                 lastKnownReports.get(index).setTime(Long.toString(System.currentTimeMillis()));
